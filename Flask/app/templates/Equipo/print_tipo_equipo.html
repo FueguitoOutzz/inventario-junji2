@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Imprimir Tipos de Equipo</title>
+  <style>
+    @page { margin: 15mm; }
+    body { font-family: Arial, Helvetica, sans-serif; color: #111; }
+    .header { text-align: center; margin-bottom: 12px; }
+    .header h1 { margin: 0 0 6px 0; font-size: 18px; }
+    .meta { font-size: 12px; margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    thead { display: table-header-group; }
+    th, td { border: 1px solid #333; padding: 6px; }
+    th { background: #f2f2f2; }
+    .footer { margin-top: 10px; font-size: 10px; text-align: right; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Tipos de Equipo - JUNJI</h1>
+    <div>Junta Nacional de Jardines Infantiles</div>
+  </div>
+
+  <div class="meta">
+    <strong>Filtro:</strong> Búsqueda: {{ filtros.q or '---' }}
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:40px;">N°</th>
+        <th>Tipo de equipo</th>
+        <th>Marcas asociadas</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in tipos %}
+      <tr>
+        <td style="text-align:center;">{{ loop.index }}</td>
+        <td>{{ t.nombreTipo_equipo }}</td>
+        <td>{{ t.marcas or 'Sin marcas asociadas' }}</td>
+      </tr>
+      {% endfor %}
+      {% if not tipos %}
+      <tr>
+        <td colspan="3" style="text-align:center;">No hay resultados con los filtros seleccionados.</td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+  <div class="footer">Impreso automáticamente</div>
+
+  <script>
+    window.addEventListener('load', function () {
+      setTimeout(function () { window.print(); }, 200);
+    });
+  </script>
+</body>
+</html>

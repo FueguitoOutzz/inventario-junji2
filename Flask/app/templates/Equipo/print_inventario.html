@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Impresión Inventario</title>
+  <style>
+    @page { margin: 15mm; }
+    body { font-family: Arial, Helvetica, sans-serif; color: #111; }
+    .header { text-align: center; margin-bottom: 12px; }
+    .header h1 { margin: 0 0 6px 0; font-size: 18px; }
+    .meta { font-size: 12px; margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    thead { display: table-header-group; }
+    th, td { border: 1px solid #333; padding: 6px; }
+    th { background: #f2f2f2; }
+    .footer { margin-top: 10px; font-size: 10px; text-align: right; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Inventario JUNJI</h1>
+    <div>Junta Nacional de Jardines Infantiles (JUNJI)</div>
+  </div>
+
+  <div class="meta">
+    <strong>Filtros:</strong>
+    Provincia: {{ filtros.provincia or 'Todas' }} | 
+    Unidad: {{ filtros.unidad or 'Todas' }} | 
+    Tipo: {{ filtros.tipo or 'Todos' }} | 
+    Estado: {{ filtros.estado or 'Todos' }}
+    {% if filtros.fecha_inicio or filtros.fecha_fin %}
+    | Fecha compra: {{ filtros.fecha_inicio or '---' }} a {{ filtros.fecha_fin or '---' }}
+    {% endif %}
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>N°</th>
+        <th>C. Inv</th>
+        <th>N° Serie</th>
+        <th>Estado</th>
+        <th>Funcionario</th>
+        <th>Unidad</th>
+        <th>Tipo</th>
+        <th>Marca</th>
+        <th>Modelo</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in equipos %}
+      <tr>
+        <td style="text-align:center;">{{ loop.index }}</td>
+        <td>{{ e.Cod_inventarioEquipo }}</td>
+        <td>{{ e.Num_serieEquipo }}</td>
+        <td>{{ e.nombreEstado_equipo }}</td>
+        <td>{{ e.nombreFuncionario if e.nombreFuncionario else '-' }}</td>
+        <td>{{ e.nombreUnidad }}</td>
+        <td>{{ e.nombreTipo_equipo }}</td>
+        <td>{{ e.nombreMarcaEquipo }}</td>
+        <td>{{ e.nombreModeloequipo }}</td>
+      </tr>
+      {% endfor %}
+      {% if not equipos %}
+      <tr>
+        <td colspan="9" style="text-align:center;">No hay resultados con los filtros seleccionados.</td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+  <div class="footer">Impreso automáticamente</div>
+
+  <script>
+    window.addEventListener('load', function () {
+      setTimeout(function () {
+        window.print();
+      }, 250);
+    });
+  </script>
+</body>
+</html>

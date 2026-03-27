@@ -1,0 +1,37 @@
+🔐 Configuración segura del acceso a MySQL (una sola vez)
+
+Crea el archivo de configuración:
+
+bash
+    nano ~/.my.cnf
+
+Coloca tus credenciales:
+
+ini
+    [client]
+    user=root
+    password=TU_CONTRASENA
+
+Protege el archivo:
+
+bash
+    chmod 600 ~/.my.cnf
+
+🕒 Ejecutarlo automáticamente con cron
+Para ejecutar todos los días a las 2 AM:
+
+bash
+    crontab -e
+
+Y añade esta línea:
+
+bash
+    Escape 
+        :qw --->editar
+        
+         0 2 * * * /ruta/completa/a/script_backup.sh >> /var/log/backup.log 2>&1
+    entrer 
+    Escape 
+        ::q! --->guaedar 
+    entrer 
+    contro + z 

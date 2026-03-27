@@ -1,0 +1,78 @@
+🎯 INTERFAZ WEB PARA VER/CAMBIAR ESTADO DE FUNCIONARIOS
+
+✅ SE AGREGÓ:
+────────────
+1. RUTA FLASK: http://localhost:3300/funcionario/estado
+   - Página web para ver y cambiar estado activo/inactivo
+
+2. API AJAX: POST /funcionario/cambiar_estado/<rut>
+   - Cambia estado sin recargar la página
+
+3. TEMPLATE HTML: estado_funcionarios.html
+   - Vista amigable con estadísticas y filtros
+
+
+🚀 CÓMO USARLO:
+───────────────
+1. Abre tu navegador:
+   http://localhost:3300/funcionario/estado
+
+2. Verás:
+   ✓ Tarjetas de estadísticas (Activos, Inactivos, Total)
+   ✓ Botones para filtrar (Todos, Activos, Inactivos)
+   ✓ Tabla con todos los funcionarios
+   ✓ Botón para Activar/Desactivar cada uno
+
+3. Para cambiar un funcionario:
+   - Si está ACTIVO ✓ → Click en "Desactivar"
+   - Si está INACTIVO ✗ → Click en "Activar"
+
+
+🎯 CASOS DE USO:
+────────────────
+1. USUARIO EN LICENCIA
+   └─ Desactivar → activoFuncionario = 0
+
+2. USUARIO VUELVE DE LICENCIA
+   └─ Activar → activoFuncionario = 1
+
+3. USUARIO RENUNCIA
+   └─ Desactivar → activoFuncionario = 0 (datos preservados)
+
+
+🔍 VERIFICAR EN MySQL:
+──────────────────────
+# Ver todos
+SELECT rutFuncionario, nombreFuncionario, activoFuncionario 
+FROM funcionario;
+
+# Ver solo activos
+SELECT * FROM funcionario WHERE activoFuncionario = 1;
+
+# Ver solo inactivos
+SELECT * FROM funcionario WHERE activoFuncionario = 0;
+
+# Contar por estado
+SELECT 
+    SUM(CASE WHEN activoFuncionario=1 THEN 1 ELSE 0 END) as activos,
+    SUM(CASE WHEN activoFuncionario=0 THEN 1 ELSE 0 END) as inactivos
+FROM funcionario;
+
+
+📁 ARCHIVOS MODIFICADOS:
+────────────────────────
+✨ NUEVOS:
+   Flask/app/templates/GestionR.H/estado_funcionarios.html
+
+📝 MODIFICADOS:
+   Flask/app/funcionario.py (+ 2 rutas nuevas)
+
+
+✅ ESTADO:
+──────────
+✓ Campo en BD: activoFuncionario (TINYINT)
+✓ Interfaz web: /funcionario/estado
+✓ API AJAX: /funcionario/cambiar_estado/<rut>
+✓ Sistema de sincronización: Listo para Excel
+
+TODO LISTO PARA USAR 🚀

@@ -1,0 +1,248 @@
+{% extends "layout.html" %}
+{% block body %}
+
+{% from 'funciones_macro.html' import paginacion %}
+
+<h2>Traslados</h2>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <!-- Contenedor para alertas dinámicas -->
+            <div id="alertContainer" class="d-none"></div>
+
+            <!-- Mensaje si no hay traslados -->
+            {% if traslado|length == 0 %}
+            <div class="alert alert-warning text-center" role="alert">
+                No hay traslados registrados.
+            </div>
+            {% endif %}
+
+            <!-- Botones de acción -->
+            <div class="d-flex justify-content-between align-items-center mb-9">
+                <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#trasladoModal">
+                    <i class="bi bi-plus-lg"></i> Agregar Traslado
+                </button>
+                <!--input que sirve como un buscador-->
+                <div class="col-auto">
+                    <input type="text" id="buscador_traslados" class="form-control" placeholder="Buscar traslados..."
+                        style="text-align: center; width: 550px; " onkeyup="busqueda('myTableBody')">
+                </div>
+                <button class="btn btn-outline-secondary shadow-sm" data-bs-toggle="modal" data-bs-target="#printTrasladoModal" id="openPrintTraslado">
+                    <i class="bi bi-printer"></i> Imprimir
+                </button>
+                <!--Botón para acceder al modal de firmar-->
+                <button class="btn btn-success shadow-sm" id="firmarTraslado" data-bs-target="#modalAdjuntarPDF"
+                    onclick="abrirModalFirmarTraslado()" disabled>
+                    <i class="bi bi-pencil"></i> Firmar Traslado
+                </button>
+                <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Eliminar">
+                    <button class="btn btn-danger shadow-sm" id="eliminarSeleccionados" disabled>
+                        <i class="bi bi-trash"></i> 
+                    </button>
+                </span>
+            </div>
+
+            <!-- Tabla de traslados -->
+            <div class="table-responsive">
+                <table id="posts" class="table table-striped table-hover align-middle">
+                    <thead class="table">
+                        <tr>
+                            <th id="selectAll"></th>
+                            <th data-bs-toggle="tooltip" title="Unidad Origen">U.Origen</th>
+                            <th data-bs-toggle="tooltip" title="Código Origen">C.Origen</th>
+                            <th data-bs-toggle="tooltip" title="Unidad Destino" style="width: 20%;">U.Destino</th>
+                            <th data-bs-toggle="tooltip" title="Código Destino">C.Destino</th>
+                            <th>Fecha Traslado</th>
+                            <th>Detalles</th>
+                            <th>Acta</th>
+                        </tr>
+                    </thead>
+                    <tbody id="myTableBody">
+                        {% for tras in traslado %}
+                        <tr data-id="row-{{ tras.idTraslado }}">
+                            <td>
+                                <input type="checkbox" class="checkbox-table row-checkbox black"
+                                    value="{{ tras.idTraslado }}"
+                                    data-id-asignacion="{{tras.idAsignacion if tras.idAsignacion else ''}}"
+                                    data-bs-toggle="tooltip" title="Seleccionar">
+                            </td>
+                            <td style="width: 14%;">{{ tras.nombreOrigen }}</td>
+                            <td>{{ tras.codigoOrigen }}</td>
+                            <td>{{ tras.nombreDestino }}</td>
+                            <td>{{ tras.codigoDestino }}</td>
+                            <td>{{ tras.fechatraslado }}
+                                <button class="btn btn-warning btn-sm ms-2" data-bs-toggle="modal"
+                                    data-bs-target="#editarTrasladoModal"
+                                    onclick="cargarEditarTraslado('{{ tras.idTraslado }}', '{{ tras.fechatraslado }}')">
+                                    <i class="bi bi-pencil"></i> <!-- Editar -->
+                                </button>
+                            </td>
+                            <td>
+                                <button class="btn btn-secondary btn-sm" data-bs-toggle="modal"
+                                    data-bs-target="#detalleTrasladoModal"
+                                    onclick="cargarDetallesTraslado('{{ tras.idTraslado }}')">
+                                    <i class="bi bi-eye"></i> Ver Detalles
+                                </button>
+                            </td>
+                            <td>
+                                <a href="/traslado/mostrar_pdf/{{ tras.idTraslado }}" class="btn btn-info btn-sm"
+                                    target="_blank">
+                                    <i class="bi bi-file-earmark-pdf"></i> Acta
+                                </a>
+
+                                <!--Condición que mostrará un botón deshabilitado si no existe una firma en el traslado-->
+                                {% if tras.estaFirmadoTraslado == 1 %}
+                                <a href="/traslado/mostrar_pdf/{{ tras.idTraslado }}/" class="btn btn-success btn-sm"
+                                    target="_blank" data-bs-toggle="tooltip" title="Acta Firmada"
+                                    style="margin-left: 1rem;">
+                                    <i class="bi bi-file-earmark-pdf"></i> A.Firmada
+                                </a>
+                                {% else %}
+                                <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip"
+                                    title="El traslado no ha sido firmado">
+                                    <a class="btn btn-secondary btn-sm disabled" target="_blank" style="margin-left: 1rem;">
+                                    <i class="bi bi-file-earmark-pdf"></i> A.Firmada
+                                </a>
+                            </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            <nav aria-label="Paginación de Traslados" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if page > 1 %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('traslado.Traslado', page=page-1) }}">Anterior</a>
+                    </li>
+                    {% endif %}
+
+                    {% for p in range(1, lastpage + 1) %}
+                    <li class="page-item {% if p == page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('traslado.Traslado', page=p) }}">{{ p }}</a>
+                    </li>
+                    {% endfor %}
+
+                    {% if page < lastpage %} <li class="page-item">
+                        <a class="page-link" href="{{ url_for('traslado.Traslado', page=page+1) }}">Siguiente</a>
+                        </li>
+                        {% endif %}
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+{% include 'Operaciones/traslado.modals.html' %}
+
+<!-- Modal impresión traslados -->
+<div class="modal fade" id="printTrasladoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Imprimir Traslados</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label for="printTrasladoQuery" class="form-label">Buscar</label>
+                        <input type="text" id="printTrasladoQuery" class="form-control" placeholder="Origen, destino...">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="printTrasladoOrigen" class="form-label">Origen</label>
+                        <select id="printTrasladoOrigen" class="form-select">
+                            <option value="" selected>Todos</option>
+                            {% for uni in unidades %}
+                            <option value="{{ uni.idUnidad }}">{{ uni.nombreUnidad }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label for="printTrasladoDestino" class="form-label">Destino</label>
+                        <select id="printTrasladoDestino" class="form-select">
+                            <option value="" selected>Todos</option>
+                            {% for uni in unidades %}
+                            <option value="{{ uni.idUnidad }}">{{ uni.nombreUnidad }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="row g-3 mt-2">
+                    <div class="col-md-4">
+                        <label for="printTrasladoDesde" class="form-label">Fecha desde</label>
+                        <input type="date" id="printTrasladoDesde" class="form-control">
+                    </div>
+                    <div class="col-md-4">
+                        <label for="printTrasladoHasta" class="form-label">Fecha hasta</label>
+                        <input type="date" id="printTrasladoHasta" class="form-control">
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-outline-secondary" id="clearTrasladoPrint">Limpiar filtros</button>
+                <button type="button" class="btn btn-success" id="printTrasladoButton">Imprimir todo</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script id="traslados-data" type="application/json">
+    {{ traslado|tojson }}
+</script>
+
+<script src="{{ url_for('static', filename='js/Operaciones/Traslado.js') }}"></script>
+
+<!-- <script>
+document.getElementById("firmarTraslado").addEventListener("click", function() {
+    let seleccionados = document.querySelectorAll(".row-checkbox:checked");
+    let ids = Array.from(seleccionados).map(cb => cb.value);
+    
+    if (ids.length === 0) {
+        alert("Selecciona al menos un traslado para firmar.");
+        return;
+    }
+    
+    let url = `/traslado/listar_pdf/${ids}`;
+    window.location.href = url;
+});
+</script> -->
+
+<script src="../../static/js/funciones.js"></script>
+
+
+<!--Script para realizar busquedas en la tabla traslado-->
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Define los placeholders dinámicos, sobre que buscar
+        const placeholders = [
+            "  Buscar por... Unidad Origen",
+            "  Buscar por... Código Origen",
+            "  Buscar por... Unidad Destino",
+            "  Buscar por... Código Destino",
+            "  Buscar por... Fecha Traslado",
+        ];
+        enableDynamicPlaceholder("buscador_traslados", placeholders, 2000)
+    });
+
+    //Busqueda de traslado segun la etiquetas definidas
+    function busqueda(tbodyId) {
+        let input = document.getElementById("buscador_traslados")
+        if (!input) return;
+        let filter = input.value.toLowerCase();
+        let tbody = document.getElementById(tbodyId);
+        if (!tbody) return;
+        let rows = tbody.getElementsByTagName("tr") || tbody.getElementsByTagName("li");
+        for (let i = 0; i < rows.length; i++) {
+            let rowText = rows[i].innerText.toLowerCase();
+            rows[i].style.display = rowText.includes(filter) ? "" : "none";
+        }
+    }
+</script>
+{% endblock %}

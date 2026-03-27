@@ -1,0 +1,346 @@
+<!-- Modal para agregar funcionario -->
+<div class="modal fade" id="addFuncionarioModal" tabindex="-1" aria-labelledby="addFuncionarioModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Encabezado -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="addFuncionarioModalLabel">Agregar funcionario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Cuerpo -->
+            <div class="modal-body">
+                <form class="funcionarios" id="form_addFuncionarioModal" action="/add_funcionario" method="POST">
+                    <!-- RUT del funcionario -->
+                    <div class="mb-3">
+                        <label for="rut_funcionario" class="form-label">RUT del funcionario<span
+                                style="color: red; margin-left: 5px">*</span></label>
+                        <div style="display: flex; align-items: center;">
+                            <input type="text" class="form-control campo-obligatorio rut-input" id="rut_funcionario"
+                                name="rut_funcionario_parcial" placeholder="Ingrese el RUT sin puntos ni guión"
+                                maxlength="8" style="width: 70%;">
+                            <span style="width: 10%; display: flex; justify-content: center;">-</span>
+                            <input type="text" class="form-control rut-verificador" id="rut_verificador" disabled
+                                style="width: 20%; text-align: center;" placeholder="DV">
+                        </div>
+                        <div class="form-check mt-2">
+                            <input class="form-check-input" type="checkbox" value="" id="desactivar_dv">
+                            <label class="form-check-label" for="desactivar_dv">
+                                Ingresar usuario unidad
+                            </label>
+                        </div>
+                        <div class="text-error-message"></div>
+                    </div>
+                    <input type="hidden" class="rut_completo" id="rut_completo" name="rut_funcionario">
+
+
+                    <!-- Nombre del funcionario -->
+                    <div class="mb-3">
+                        <label for="nombre_funcionario" class="form-label">Nombre completo<span
+                                style="color: red; margin-left: 5px">*</span></label>
+                        <input type="text" class="form-control campo-obligatorio validar-letras" id="nombre_funcionario"
+                            name="nombre_funcionario" placeholder="Ingrese el nombre del funcionario" maxlength="45">
+                        <div class="text-error-message"></div>
+                    </div>
+
+                    <!-- Correo electrónico -->
+                    <div class="mb-3">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <label for="add_correo_funcionario" class="form-label" style="flex: 3;">Correo
+                                electrónico<span style="color: red; margin-left: 5px">*</span></label>
+                            <label for="add_correo_dominio" class="form-label"
+                                style="flex: 2; text-align: left; margin-left: 5%;">Dominio<span
+                                    style="color: red; margin-left: 5px">*</span></label>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0 10px">
+                            <input type="text"
+                                class="form-control campo-obligatorio correo-input-funcionario validar-input-correo"
+                                id="add_correo_funcionario" name="correo_funcionario_local" placeholder="correo"
+                                maxlength="45" style="flex: 2;">
+                            <select class="form-select correo-dominio-funcionario" id="add_correo_dominio"
+                                name="correo_dominio" style="flex: 1;">
+                                <option value="@junji.cl">@junji.cl</option>
+                                <option value="@junjired.cl">@junjired.cl</option>
+                            </select>
+                        </div>
+                        <div class="text-error-message">
+                        <input type=" hidden" class="correo-oculto" id="add_correo_oculto" name="correo_funcionario">
+                        </div>
+                        </div>
+
+                        <!-- Cargo del funcionario -->
+                        <div class="mb-3">
+                            <label for="cargo_funcionario" class="form-label">Cargo<span
+                                    style="color: red; margin-left: 5px">*</span></label>
+                            <select class="form-select campo-obligatorio" id="cargo_funcionario"
+                                name="cargo_funcionario">
+                                <option value="">Seleccione un cargo</option>
+                                <option value="ADMINISTRATIVO">ADMINISTRATIVO</option>
+                                <option value="AUXILIAR">AUXILIAR</option>
+                                <option value="PROFESIONAL">PROFESIONAL</option>
+                                <option value="TÉCNICO">TÉCNICO</option>
+                                <option value="DIRECTOR REGIONAL">DIRECTOR REGIONAL</option>
+                            </select>
+                            <div class="text-error-message"></div>
+                        </div>
+
+                        <!-- Unidad -->
+                        <div class="mb-3">
+                            <label for="codigo_Unidad" class="form-label">Unidad<span
+                                    style="color: red; margin-left: 5px">*</span></label>
+                            <select class="form-select campo-obligatorio" id="codigo_Unidad" name="codigo_Unidad">
+                                <option value="">Seleccione una unidad</option>
+                                {% for ubi in Unidad %}
+                                <option value="{{ ubi.idUnidad }}">{{ ubi.nombreUnidad }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="text-error-message"></div>
+                        </div>
+                </form>
+            </div>
+
+            <!-- Footer de botones -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="submit" form="form_addFuncionarioModal" class="btn btn-primary">Guardar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Modal para editar funcionario -->
+<div class="modal fade" id="editFuncionarioModal" tabindex="-1" aria-labelledby="editFuncionarioModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <!-- Encabezado -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="editFuncionarioModalLabel">Editar funcionario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Cuerpo -->
+            <div class="modal-body">
+                <form class="funcionarios" id="form_editFuncionarioModal" action="/edit_funcionario" method="POST">
+                    <!-- RUT del funcionario -->
+                    <div class="mb-3">
+                        <label for="edit_rut_funcionario" class="form-label">RUT del funcionario<span
+                                style="color: red; margin-left: 5px">*</span></label>
+                        <div style="display: flex; align-items: center;">
+                            <input type="text" class="form-control campo-obligatorio rut-input"
+                                id="edit_rut_funcionario" name="rut_funcionario_parcial"
+                                placeholder="Ingrese el RUT sin puntos ni guion" maxlength="8" style="width: 70%;"
+                                disabled>
+                            <span style="width: 10%; display: flex; justify-content: center;">-</span>
+                            <input type="text" class="form-control rut-verificador" id="edit_rut_verificador" disabled
+                                style="width: 20%; text-align: center;" placeholder="DV">
+                        </div>
+                        <div class="text-error-message"></div>
+                    </div>
+
+                    <!-- Campo oculto para el RUT completo -->
+                    <input type="hidden" id="edit_rut_actual" name="edit_rut_actual">
+                    <input type="hidden" id="rut_completo" class="rut_completo" name="rut_completo">
+
+                    <!-- Nombre del funcionario -->
+                    <div class="mb-3">
+                        <label for="edit_nombre_funcionario" class="form-label">Nombre completo<span
+                                style="color: red; margin-left: 5px">*</span></label>
+                        <input type="text" class="form-control campo-obligatorio validar-letras"
+                            id="edit_nombre_funcionario" name="nombre_funcionario"
+                            placeholder="Ingrese el nombre del funcionario" maxlength="45">
+                        <div class="text-error-message"></div>
+                    </div>
+
+                    <!-- Correo electrónico -->
+                    <div class="mb-3">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <label for="edit_correo_funcionario" class="form-label" style="flex: 3;">Correo
+                                electrónico<span style="color: red; margin-left: 5px">*</span></label>
+                            <label for="edit_correo_dominio" class="form-label"
+                                style="flex: 2; text-align: left; margin-left: 5%;">Dominio<span
+                                    style="color: red; margin-left: 5px">*</span></label>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <input type="text"
+                                class="form-control campo-obligatorio correo-input-funcionario validar-input-correo"
+                                id="edit_correo_funcionario" name="correo_funcionario_local" placeholder="correo"
+                                maxlength="45" style="flex: 2;">
+                            <select class="form-select correo-dominio-funcionario" id="edit_correo_dominio"
+                                name="correo_dominio" style="flex: 1;">
+                                <option value="@junji.cl">@junji.cl</option>
+                                <option value="@junjired.cl">@junjired.cl</option>
+                            </select>
+                        </div>
+                        <div class="text-error-message"></div>
+                        <input type="hidden" class="correo-oculto" id="edit_correo_oculto" name="correo_funcionario">
+                    </div>
+
+                    <!-- Cargo del funcionario -->
+                    <div class="mb-3">
+                        <label for="edit_cargo_funcionario" class="form-label">Cargo<span
+                                style="color: red; margin-left: 5px">*</span></label>
+                        <select class="form-select campo-obligatorio" id="edit_cargo_funcionario"
+                            name="cargo_funcionario">
+                            <option value="">Seleccione un cargo</option>
+                            <option value="ADMINISTRATIVO">ADMINISTRATIVO</option>
+                            <option value="ENCARGADA/O">ENCARGADA/O</option>
+                            <option value="AUXILIAR">AUXILIAR</option>
+                            <option value="PROFESIONAL">PROFESIONAL</option>
+                            <option value="TÉCNICO">TÉCNICO</option>
+                            <option value="DIRECTOR REGIONAL">DIRECTOR REGIONAL</option>
+                            <option value="ENCARGADA/O">ENCARGADA/O</option>
+                        </select>
+                        <div class="text-error-message"></div>
+                    </div>
+
+                    <!-- Unidad -->
+                    <div class="mb-3">
+                        <label for="edit_codigo_Unidad" class="form-label">Unidad<span
+                                style="color: red; margin-left: 5px">*</span></label>
+                        <select class="form-select campo-obligatorio" id="edit_codigo_Unidad" name="codigo_Unidad">
+                            <option value="">Seleccione una unidad</option>
+                            {% for ubi in Unidad %}
+                            <option value="{{ ubi.idUnidad }}">{{ ubi.nombreUnidad }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="text-error-message"></div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="edit_activoFuncionario" class="form-label">Estado</label>
+                        <select class="form-select" id="edit_activoFuncionario" name="activoFuncionario">
+                            <option value="1" selected>Activo</option>
+                            <option value="0">Inactivo</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3 d-none" id="edit_inactivo_fields">
+                        <label for="edit_motivo_inactivo" class="form-label">Motivo de inactividad</label>
+                        <select class="form-select" id="edit_motivo_inactivo" name="motivo_inactivo" data-target-hidden="#edit_motivo_inactividad_id">
+                            <option value="" data-id="">Selecciona un motivo</option>
+                            {% if motivos_inactividad %}
+                                {% for motivo in motivos_inactividad %}
+                                <option value="{{ motivo.nombre }}" data-id="{{ motivo.id }}">{{ motivo.label }}</option>
+                                {% endfor %}
+                            {% else %}
+                                <option value="" data-id="" disabled>No hay motivos configurados</option>
+                            {% endif %}
+                        </select>
+                        <input type="hidden" id="edit_motivo_inactividad_id" name="motivo_inactividad_id" value="">
+                        <small class="text-muted">Al marcar inactivo se registrará el motivo y sus equipos quedarán como pendientes de devolución.</small>
+                        <div class="mt-2">
+                            <label for="edit_detalle_inactivo" class="form-label">Detalle (opcional)</label>
+                            <textarea class="form-control" id="edit_detalle_inactivo" name="detalle_inactivo" rows="2" placeholder="Ej: fecha de desvinculación, observación"></textarea>
+                        </div>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Footer de botones -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="submit" form="form_editFuncionarioModal" class="btn btn-primary btn-rectangular">Guardar
+                    cambios</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal que aparece cuando se quiere eliminar un funcionario con equipos asignados -->
+<div class="modal fade" id="warningModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <!-- Encabezado -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="warningModalLabel">No se puede eliminar el funcionario</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <!-- Contenido -->
+            <div class="modal-body">
+                El funcionario no se puede eliminar porque tiene equipos asignados.
+                Para eliminarlo, primero debe desvincular todos los equipos.
+            </div>
+
+            <!-- Footer de botones -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Entendido</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para ver los equipos asignados -->
+{% for fun in funcionario %}
+<div class="modal fade" id="modal-ver-equipo-asignado-{{ fun.rutFuncionario }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <!-- Encabezado -->
+            <div class="modal-header">
+                <h5 class="modal-title">Equipos asignados a {{ fun.nombreFuncionario }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <!-- Contenido -->
+            <div class="modal-body">
+                <table class="table table-sm table-striped table-bordered" style="table-layout: fixed;">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Marca</th>
+                            <th>Modelo</th>
+                            <th>Cód. Inventario</th>
+                            <th>N° Serie</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for equipo in fun.equipos_detalle %}
+                        <tr>
+                            <td>{{ equipo.nombreTipo_equipo }}</td>
+                            <td>{{ equipo.nombreMarcaEquipo }}</td>
+                            <td>{{ equipo.nombreModeloequipo }}</td>
+                            <td>{{ equipo.Cod_inventarioEquipo }}</td>
+                            <td>{{ equipo.Num_serieEquipo }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Footer de botones -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<div class="modal fade" id="modal-sin-equipos-asignados" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <!-- Encabezado -->
+            <div class="modal-header">
+                <h5 class="modal-title">Sin equipos asignados</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+
+            <!-- Contenido -->
+            <div class="modal-body">
+                <p>Este funcionario no tiene equipos asignados</p>
+            </div>
+
+            <!-- Footer de botones -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>

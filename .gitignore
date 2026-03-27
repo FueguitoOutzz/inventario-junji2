@@ -1,0 +1,74 @@
+# ===== SISTEMA =====
+.DS_Store
+Thumbs.db
+
+# ===== ENTORNOS =====
+venv/
+venv-win/
+.venv/
+Flask/.venv/
+env/
+ENV/
+.env
+.env.*
+*.env
+Flask/app/.env
+
+# ===== BASES DE DATOS =====
+*.sql
+*.sqlite
+*.db
+
+# ===== ARCHIVOS DE PRUEBA LOCAL =====
+# PDFs, documentos, exportaciones
+*.pdf
+*.xlsx
+*.xls
+*.csv
+*.docx
+*.doc
+*.txt~
+
+# ===== BACKUPS / BASURA =====
+backup*
+respaldo*
+*.bak
+*.bak*
+*.log
+*.backup
+*.tmp
+
+# ===== DATA LOCAL / TEMP =====
+data/
+tmp/
+temp/
+downloads/
+uploads/
+
+# ===== ARCHIVOS GENERADOS =====
+*.pyc~
+*.egg-info/
+dist/
+build/
+
+# ===== CACHE DE EDITOR =====
+.DS_Store
+Thumbs.db
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
+
+# ===== DOCUMENTACION LOCAL =====
+*.md~
+
+# ===== SCRIPTS LOCALES =====
+*.sh~
+*.bat~
+
+# ===== ARCHIVOS ESPECÍFICOS DEL PROYECTO =====
+datos_exportados.xlsx
+traslado_*.pdf
+datos_*.csv
+datos_*.xlsx

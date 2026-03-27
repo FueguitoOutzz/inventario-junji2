@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Imprimir Asignaciones</title>
+  <style>
+    @page { margin: 15mm; }
+    body { font-family: Arial, Helvetica, sans-serif; color: #111; }
+    .header { text-align: center; margin-bottom: 12px; }
+    .header h1 { margin: 0 0 6px 0; font-size: 18px; }
+    .meta { font-size: 12px; margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    thead { display: table-header-group; }
+    th, td { border: 1px solid #333; padding: 6px; }
+    th { background: #f2f2f2; }
+    .footer { margin-top: 10px; font-size: 10px; text-align: right; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Asignaciones - JUNJI</h1>
+    <div>Junta Nacional de Jardines Infantiles</div>
+  </div>
+
+  <div class="meta">
+    <strong>Filtros:</strong>
+    Búsqueda: {{ filtros.q or '---' }} |
+    Funcionario: {{ filtros.funcionario or 'Todos' }} |
+    Estado devolución: {{ filtros.estado or 'Todos' }} |
+    Fecha inicio: {{ filtros.fecha_inicio or '---' }} a {{ filtros.fecha_fin or '---' }}
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:35px;">N°</th>
+        <th>ID</th>
+        <th>Funcionario</th>
+        <th>RUT</th>
+        <th>Tipo</th>
+        <th>Marca</th>
+        <th>Modelo</th>
+        <th>Fecha asig.</th>
+        <th>Fecha devol.</th>
+        <th>Cod. Inv.</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in asignaciones %}
+      <tr>
+        <td style="text-align:center;">{{ loop.index }}</td>
+        <td>{{ a.idAsignacion }}</td>
+        <td>{{ a.nombreFuncionario }}</td>
+        <td>{{ a.rutFuncionario }}</td>
+        <td>{{ a.nombreTipo_equipo }}</td>
+        <td>{{ a.nombreMarcaEquipo }}</td>
+        <td>{{ a.nombreModeloequipo }}</td>
+        <td>{{ a.fecha_inicio_formateada }}</td>
+        <td>{{ a.fecha_devolucion_formateada }}</td>
+        <td>{{ a.Cod_inventarioEquipo }}</td>
+      </tr>
+      {% endfor %}
+      {% if not asignaciones %}
+      <tr>
+        <td colspan="10" style="text-align:center;">No hay resultados con los filtros seleccionados.</td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+  <div class="footer">Impreso automáticamente</div>
+
+  <script>
+    window.addEventListener('load', function () {
+      setTimeout(function () { window.print(); }, 200);
+    });
+  </script>
+</body>
+</html>

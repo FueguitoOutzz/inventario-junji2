@@ -1,0 +1,178 @@
+📊 RESUMEN: CAMPO ACTIVO/INACTIVO PARA FUNCIONARIOS
+═══════════════════════════════════════════════════════════
+
+✅ ¿QUÉ SE HIZO?
+─────────────────
+
+1. **SQL Migration**
+   - Archivo: SQL_historial/add_campo_activo_funcionario.sql
+   - Añade columna: activoFuncionario (TINYINT DEFAULT 1)
+   - Crea índice para búsquedas rápidas
+   
+2. **Python Script**
+   - Archivo: sync_funcionarios_excel.py
+   - Lee Excel y sincroniza con BD
+   - Inserta funcionarios nuevos
+   - Actualiza funcionarios existentes
+   - Desactiva (marca como 0) los que no están en Excel
+   - Registra todo en log detallado
+   
+3. **Actualización Flask**
+   - Archivo: Flask/app/funcionario.py
+   - Maneja campo activoFuncionario
+   - Filtra solo funcionarios activos en vistas
+   - Compatible si la columna aún no existe (graceful degradation)
+   
+4. **Documentación**
+   - Archivo: SYNC_FUNCIONARIOS_EXCEL.md
+   - Guía completa de uso
+   - Ejemplos de flujos
+   - Troubleshooting
+
+═══════════════════════════════════════════════════════════
+
+🚀 CÓMO USARLO (3 PASOS)
+─────────────────────────
+
+PASO 1: Agregar columna a BD
+├─ Command: mysql -u junji -p inventariofinal < SQL_historial/add_campo_activo_funcionario.sql
+└─ Verifica: DESC funcionario; → Deberías ver activoFuncionario
+
+PASO 2: Preparar Excel con funcionarios activos
+├─ Columnas REQUERIDAS:
+│  ├─ rutFuncionario (ej: 12345678-9)
+│  ├─ nombreFuncionario (JUAN PÉREZ)
+│  ├─ cargoFuncionario (PROFESIONAL)
+│  ├─ correoFuncionario (jperez@junji.cl)
+│  └─ idUnidad (8101098)
+└─ Guardar como: archivo.xlsx
+
+PASO 3: Ejecutar sincronización
+├─ Command: python sync_funcionarios_excel.py archivo.xlsx
+├─ Log: sync_funcionarios_TIMESTAMP.log
+└─ Verifica: cat sync_funcionarios_*.log
+
+═══════════════════════════════════════════════════════════
+
+📈 LÓGICA DE SINCRONIZACIÓN
+─────────────────────────────
+
+ENTRADA: Excel con funcionarios ACTIVOS actuales
+         └─ Ej: 15 funcionarios listados
+
+BD ANTES:
+├─ 10299816-2 | MARIELA  | activo=1
+├─ 17170031-0 | CYNTHIA  | activo=1
+├─ 9180661-4  | HECTOR   | activo=1
+├─ 13389399-7 | SILVANA  | activo=1
+└─ ... más funcionarios activos
+
+PROCESAMIENTO:
+├─ Funcionarios EN Excel:
+│  ├─ Si existe: UPDATE (actualiza datos si cambiaron)
+│  └─ Si NO existe: INSERT (nuevo funcionario)
+│
+└─ Funcionarios NO EN Excel:
+   └─ UPDATE SET activoFuncionario = 0 (licencia/renuncia/etc)
+
+BD DESPUÉS:
+├─ 10299816-2 | MARIELA  | activo=1 ← En Excel ✓
+├─ 17170031-0 | CYNTHIA  | activo=1 ← En Excel ✓
+├─ 9180661-4  | HECTOR   | activo=0 ← NO EN EXCEL (licencia?)
+├─ 13389399-7 | SILVANA  | activo=1 ← En Excel ✓
+├─ 99999999-9 | JUAN     | activo=1 ← NUEVO (insertado)
+└─ ... resultado actualizado
+
+SALIDA: Log con estadísticas
+        ├─ Insertados: 1
+        ├─ Actualizados: 12
+        ├─ Desactivados: 3
+        └─ Errores: 0
+
+═══════════════════════════════════════════════════════════
+
+🔄 CASOS DE USO FUTURO
+──────────────────────
+
+1. CARGA AUTOMÁTICA (Web UI)
+   User: "Subir Excel de funcionarios"
+   └─ Backend ejecuta sync_funcionarios_excel.py
+      └─ Retorna resultado JSON con estadísticas
+
+2. SINCRONIZACIÓN PERIÓDICA
+   ├─ Cron job diario: python sync_funcionarios_excel.py ruta/funcionarios.xlsx
+   └─ Mantiene BD actualizada automáticamente
+
+3. REPORTES
+   ├─ Funcionarios activos: SELECT * WHERE activoFuncionario=1
+   ├─ Funcionarios inactivos: SELECT * WHERE activoFuncionario=0
+   └─ Cambios por período: Revisar logs
+
+4. IMPACTO EN ASIGNACIONES
+   ├─ No afecta datos históricos
+   ├─ Solo oculta funcionarios inactivos de formularios
+   └─ Puedes filtrar: JOIN funcionario WHERE activoFuncionario=1
+
+═══════════════════════════════════════════════════════════
+
+📁 ARCHIVOS CREADOS/MODIFICADOS
+────────────────────────────────
+
+✨ NUEVOS:
+├─ SQL_historial/add_campo_activo_funcionario.sql (SQL migration)
+├─ sync_funcionarios_excel.py (Script Python)
+├─ SYNC_FUNCIONARIOS_EXCEL.md (Documentación)
+└─ RESUMEN_ACTIVO_FUNCIONARIOS.txt (Este archivo)
+
+📝 MODIFICADOS:
+└─ Flask/app/funcionario.py (Añadido soporte para activoFuncionario)
+
+═══════════════════════════════════════════════════════════
+
+🛠️ DEPENDENCIAS NECESARIAS
+──────────────────────────
+
+Ya instaladas en Flask/requirements.txt:
+├─ pandas==2.2.3
+├─ openpyxl==3.1.2
+├─ pymysql (ya presente)
+└─ python-dotenv==1.0.0 (ya presente)
+
+═══════════════════════════════════════════════════════════
+
+❓ PREGUNTAS FRECUENTES
+──────────────────────
+
+Q: ¿Se pierden datos cuando marco un funcionario como inactivo?
+A: No. Solo se cambia activoFuncionario=0. Todos los datos 
+   históricos (asignaciones, emails, etc) se preservan.
+
+Q: ¿Puedo reactivar funcionarios después?
+A: Sí, con: UPDATE funcionario SET activoFuncionario=1 
+   WHERE rutFuncionario='12345678-9'
+
+Q: ¿Qué pasa con las asignaciones de un funcionario inactivo?
+A: Se quedan registradas (auditoría), pero no aparecen en 
+   formularios de asignación nuevas.
+
+Q: ¿Puedo ejecutar el script multiple veces?
+A: Sí, es idempotente. Actualizará datos y evitará duplicados.
+
+Q: ¿Qué si me equivoco en el Excel?
+A: Revisar el log, corregir Excel, ejecutar script nuevamente.
+
+═══════════════════════════════════════════════════════════
+
+📞 SOPORTE
+──────────
+
+Si hay problemas:
+1. Revisar log: cat sync_funcionarios_TIMESTAMP.log
+2. Revisar documentación: SYNC_FUNCIONARIOS_EXCEL.md
+3. Ejecutar nuevamente: python sync_funcionarios_excel.py archivo.xlsx
+
+═══════════════════════════════════════════════════════════
+
+Creado: 16 de Enero de 2026
+Versión: 1.0
+Estado: ✅ LISTO PARA PRODUCCIÓN

@@ -1,0 +1,64 @@
+* 6a89774b (HEAD -> main, origin/main, origin/HEAD) fix pequeño
+* ff1724cc Load /opt .env for DB config and avoid root fallback
+* 63cbb1ec ultimos cambios
+* 3d69f4f3 Actualizaciones locales
+*   294f2157 (origin/francisca) Merge pull request #5 from Idknoou/francisca
+|\  
+| * 934e74cc update
+|/  
+* 29a0eb4b Finalizacion usuario activo, pendiente devolucion, etc...
+*   e42de1bc Merge pull request #4 from Idknoou/francisca
+|\  
+| * d84357fa update
+* | 4efae5c8 Merge pull request #3 from Idknoou/francisca
+|\| 
+| * f01ccb5d update importar funcionario
+* | 09696389 Merge pull request #2 from Idknoou/francisca
+|\| 
+| * 059d16b1 importar funcionarios por archivo excel
+| *   f10b5a02 Merge branch 'main' into francisca
+| |\  
+| |/  
+|/|   
+| *   abba98db Merge branch 'main' into francisca
+| |\  
+| * \   78a98a21 Merge remote-tracking branch 'origin/main' into francisca
+| |\ \  
+| * | | 1588de05 update
+| * | | d574abad update
+| | | | * fa14e5a8 (refs/stash) On main: "pre-merge-local-wip"
+| |_|_|/| 
+|/| | | | 
+| | | | * 12cb5421 index on main: b8cd2cbd imprime, nuevo apartado
+| |_|_|/  
+|/| | |   
+* | | | b8cd2cbd imprime, nuevo apartado
+| |_|/  
+|/| |   
+* | | e833397a cambios
+* | | 9076ad2a Add autocommit and server log file support
+* | | 8a27dcb4 en uso agregado
+* | | 935a6767 supuesto arreglo v2
+* | | 36753b52 Supuesto error corregido
+| |/  
+|/|   
+* | 2c34fe74 Verificando Crud
+* | 4a707c84 correcion crud localmente, agrego campos cargo, funcionario activo no activo.
+* | a16b2db1 corregi equipo
+* | ac73cfff Fix equipo.py (validación Cerberus estable)
+* | 6ea41090 Fix validación de errores en equipo (mensajes seguros)
+* |   6b33da87 Merge branch 'main' of https://github.com/Idknoou/Junji-Inventario
+|\ \  
+| * | ddbb29e8 Logs y crud supuestamente arreglados
+| |/  
+* / c0af7f04 (origin/backup/before-merge-c0af7f04) chore: ignore project venvs (Flask/.venv, venv-win, .venv, env)
+|/  
+| *   dd385200 (origin/backup/before-reset-dd385200) chore: merge .gitignore conflicts (keep venv entries)
+| |\  
+| |/  
+|/|   
+* | 191a7486 Cambio grande X
+* | 2377b124 sin error en funcionario las lineas esas
+| * 78eb1150 chore: add .gitignore; bump problematic requirements (pillow, contourpy, cffi) for Python 3.14
+|/  
+* 82bea01f comienzo

@@ -1,0 +1,211 @@
+{% extends "layout.html" %}
+{% block body %}
+
+<div class="row">
+  <div class="col">
+    <h2>Unidad</h2>
+    <div>
+      <div class="toolbar">
+        <div class="toolbar-1">
+          <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#modal-add-unidad">
+            <i class="bi bi-plus-lg"></i> Agregar
+          </button>
+        </div>
+        <div class="toolbar-2">
+          <!-- Buscador -->
+          <input id="buscador_unidad" type="text" class="form-control" placeholder="Buscar unidad..."
+            oninput="buscarUnidades(1)" style="max-width: 500px; display: inline-block;" />
+        </div>
+        <div class="toolbar-3">
+          <button class="btn btn-outline-secondary shadow-sm" data-bs-toggle="modal" data-bs-target="#printUnidadModal" id="openPrintUnidad">
+            <i class="bi bi-printer"></i> Imprimir
+          </button>
+        </div>
+      </div>
+
+    </div>
+    <div id="error-message" style="display: none" class="error-message"></div>
+    <div class="card card-body" id="formulario" style="display: none">
+      <form action="/add_Unidad" method="POST" class="mi-formulario">
+        <div class="form-group">
+          <label for="codigo_unidad">Código de la Unidad: </label>
+          <input type="text" class="solo-numeros" name="codigo_unidad" placeholder="Codigo" maxlength="20" />
+          <br />
+          <label for="nombreUnidad">Nombre de la Unidad: </label>
+          <input type="text" class="validatable-input" name="nombreUnidad" placeholder="Nombre" maxlength="45" />
+          <br />
+          <label for="contactoUnidad">Contacto: </label>
+          <input type="text" class="validatable-input" name="contactoUnidad" placeholder="Contacto" maxlength="45" />
+          <br />
+          <label for="direccionUnidad">Dirección: </label>
+          <input type="text" class="validatable-input" name="direccionUnidad" placeholder="Direccion" maxlength="45" />
+          <br />
+          <label for="nombreComuna">Comuna: </label>
+          <select class="form-select" aria-label="nombreComuna" name="idComuna">
+            <option selected>Elija su Comuna</option>
+            {% for comuna in comuna %}
+            <option value="{{ comuna.idComuna }}">{{ comuna.nombreComuna }}</option>
+            {% endfor %}
+          </select>
+          <label>Modalidad: </label>
+          <select class="form-select" aria-label="nombreModalidad" name="idModalidad">
+            <option selected>Elija la Modalidad</option>
+            {% for modalidad in Modalidades %}
+            <option value="{{ modalidad.idModalidad }}">{{ modalidad.nombreModalidad }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <button class="agregar-button">Guardar</button>
+      </form>
+    </div>
+  </div>
+  <div style="overflow-x: auto">
+    <table id="posts" class="display table table-bordered table-striped">
+      <thead>
+        <tr>
+          <th onclick="ordenarUnidad('idUnidad')">Código Unidad</th>
+          <th onclick="ordenarUnidad('nombreUnidad')">Nombre Unidad</th>
+          <th onclick="ordenarUnidad('contactoUnidad')">Contacto</th>
+          <th onclick="ordenarUnidad('direccionUnidad')">Dirección</th>
+          <th onclick="ordenarUnidad('nombreComuna')">Comuna</th>
+          <th onclick="ordenarUnidad('num_equipos')">N° Equipos</th>
+          <th onclick="ordenarUnidad('nombreModalidad')">Modalidad</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="unidadTableBody">
+        {% for ubi in Unidad %}
+        <tr>
+          <td>{{ubi.idUnidad}}</td>
+          <td>{{ubi.nombreUnidad}}</td>
+          <td>{{ubi.contactoUnidad}}</td>
+          <td>{{ubi.direccionUnidad}}</td>
+          <td>{{ubi.nombreComuna}}</td>
+          <td>{{ubi.num_equipos}}</td>
+          <td>{{ubi.nombreModalidad}}</td>
+          <td>
+            <div class="d-flex gap-1">
+              <!-- Botón de Editar -->
+              <button class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#modal-edit-unidad"
+                data-id="{{ ubi.idUnidad }}" data-codigo="{{ ubi.idUnidad }}" data-nombre="{{ ubi.nombreUnidad }}"
+                data-contacto="{{ ubi.contactoUnidad }}" data-direccion="{{ ubi.direccionUnidad }}"
+                data-comuna="{{ ubi.idComuna }}" data-modalidad="{{ ubi.idModalidad }}" title="Editar">
+                <i class="bi bi-pencil"></i>
+              </button>
+
+              <!-- Botón de Mostrar Equipos -->
+              <button class="btn btn-info btn-sm" data-bs-toggle="tooltip" title="Funcionarios"
+                onclick="window.location.href='/mostrar_funcionarios_unidad/{{ubi.idUnidad}}'">
+                <i class="bi bi-people-fill"></i>
+              </button>
+
+              <!-- Botón de Mostrar Equipos -->
+              <button class="btn btn-warning btn-sm" title="Ver Equipos"
+                onclick="window.location.href='/mostrar_equipos_unidad/{{ubi.idUnidad}}'">
+                <i class="bi bi-hdd-network-fill"></i>
+              </button>
+
+
+              <!-- Botón de Eliminar (abre modal) -->
+              <button class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modal-confirm-delete-unidad"
+                data-id="{{ubi.idUnidad}}" title="Eliminar">
+                <i class="bi bi-trash-fill"></i>
+              </button>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Paginación -->
+  <div class="pagination-container mt-3 d-flex justify-content-center">
+    <nav aria-label="Paginación de unidades">
+      <ul class="pagination" id="unidad-pagination"></ul>
+    </nav>
+  </div>
+</div>
+
+<!-- Modal de confirmación de eliminación -->
+<div class="modal fade" id="modal-confirm-delete-unidad" tabindex="-1" aria-labelledby="modalConfirmDeleteUnidadLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalConfirmDeleteUnidadLabel">Confirmar eliminación</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body">
+        ¿Está seguro que desea eliminar esta unidad? Esta acción no se puede deshacer.
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <form id="form-delete-unidad" method="POST" style="display:inline;">
+          <button type="submit" class="btn btn-danger">Eliminar</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% include 'Organizacion/unidad.modal.html' %}
+
+<!-- Modal impresión unidades -->
+<div class="modal fade" id="printUnidadModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Imprimir Unidades</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label for="printUnidadQuery" class="form-label">Buscar</label>
+            <input type="text" id="printUnidadQuery" class="form-control" placeholder="Nombre, código, dirección...">
+          </div>
+          <div class="col-md-4">
+            <label for="printUnidadComuna" class="form-label">Comuna</label>
+            <select id="printUnidadComuna" class="form-select">
+              <option value="" selected>Todas</option>
+              {% for c in comuna %}
+              <option value="{{ c.idComuna }}">{{ c.nombreComuna }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label for="printUnidadModalidad" class="form-label">Modalidad</label>
+            <select id="printUnidadModalidad" class="form-select">
+              <option value="" selected>Todas</option>
+              {% for m in Modalidades %}
+              <option value="{{ m.idModalidad }}">{{ m.nombreModalidad }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button type="button" class="btn btn-outline-secondary" id="clearUnidadPrint">Limpiar filtros</button>
+        <button type="button" class="btn btn-success" id="printUnidadButton">Imprimir todo</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Vinculamos el archivo JavaScript -->
+<script src="{{ url_for('static', filename='js/Operaciones/Unidad.js') }}"></script>
+<script>
+  // Script para pasar el id al formulario del modal de eliminar
+  document.addEventListener('DOMContentLoaded', function () {
+    var deleteModal = document.getElementById('modal-confirm-delete-unidad');
+    deleteModal.addEventListener('show.bs.modal', function (event) {
+      var button = event.relatedTarget;
+      var idUnidad = button.getAttribute('data-id');
+      var form = document.getElementById('form-delete-unidad');
+      form.action = '/delete_Unidad/' + idUnidad;
+    });
+  });
+</script>
+
+{% endblock %}

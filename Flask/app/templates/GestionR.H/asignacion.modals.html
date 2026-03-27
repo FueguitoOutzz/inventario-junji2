@@ -1,0 +1,820 @@
+<div class="modal fade" id="addAsignacionModal" tabindex="-1" aria-labelledby="">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <!-- Encabezado -->
+            <div class="modal-header">
+                <h5 class="modal-title" id="addAsignacionModalLabel">Agregar asignación de equipo</h5>
+                <button type="button" class="btn-close btn-cerrar-asignacion" data-bs-dismiss="modal"></button>
+            </div>
+            <!-- Contenido -->
+            <div class="modal-body">
+                <form class="asignaciones" id="form-asignacion-modal" action="/asignacion/create_asignacion"
+                    method="POST">
+                    <div class="row">
+                        <!-- Fecha de asignación -->
+                        <div class="col-md-5">
+                            <div class="mb-3 fecha-asignacion">
+                                <label for="fecha-asignacion">Fecha asignación<span
+                                        style="color: red; margin-left: 5px">*</span></label>
+                                <input type="date" name="fecha-asignacion"
+                                    class="form-control campo-obligatorio fecha-input validar-fecha-30-0">
+                                <div class="text-error-message"></div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-7">
+                            <!-- Campo para ingresar Nombre o RUT del Funcionario -->
+                            <div class="mb-3">
+                                <label id="label-funcionario">Nombre del funcionario<span
+                                        style="color: red; margin-left: 5px">*</span></label>
+                                <div class="d-flex">
+                                    <!-- Contenedor del NOMBRE (por defecto visible) -->
+                                    <div id="contenedorNombre" style="display: block; width: 100%;">
+                                        <input type="text" class="form-control" id="nombre_funcionario"
+                                            name="nombre_funcionario" placeholder="Ingrese el nombre del funcionario"
+                                            autocomplete="off">
+                                        <!-- Lista de sugerencias de autocompletado -->
+                                        <div id="sugerencias_funcionarios" class="list-group position-absolute w-50"
+                                            style="z-index: 1000; display: none;"></div>
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input" type="checkbox" value="" id="desactivar_dv">
+                                            <label class="form-check-label" for="desactivar_dv">
+                                                Ingresar usuario unidad
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Contenedor del RUT (por defecto oculto) -->
+                                    <div id="contenedorRut" style="display: none; width: 100%;">
+                                        <div class="d-flex">
+                                            <input type="text" class="form-control rut-input" id="rut_funcionario"
+                                                name="rut_funcionario_parcial"
+                                                placeholder="Ingrese RUT sin puntos ni guión" maxlength="9"
+                                                style="width: 70%;">
+
+                                            <span
+                                                style="width: 10%; display: flex; justify-content: center; align-items: center">-</span>
+                                            <input type="text" class="form-control rut-verificador" id="rut_verificador"
+                                                disabled style="width: 20%; text-align: center;" placeholder="DV">
+                                        </div>
+                                        <!-- Checkbox para desactivar el RUT y permitir ingresar usuario por unidad -->
+                                        <div class="form-check mt-2">
+                                            <input class="form-check-input" type="checkbox" value="" id="desactivar_dv">
+                                            <label class="form-check-label" for="desactivar_dv">
+                                                Ingresar usuario unidad
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <!-- Botón para cambiar entre Nombre y RUT -->
+                                    <button type="button" class="btn btn-secondary ms-2" id="toggleFuncionario"
+                                        data-bs-toggle="tooltip" data-bs-title="Buscar por RUT">
+                                        <i class="bi bi-arrow-repeat"></i>
+                                    </button>
+                                </div>
+                                <!-- Campo oculto para almacenar el RUT completo si lo deseas -->
+                                <input type="hidden" class="rut_completo" id="rut_completo" name="rut_funcionario">
+                                <div class="text-error-message"></div>
+                            </div>
+
+                            <!-- Div para almacenar la lista de funcionarios en JSON -->
+                            <div id="listaFuncionarios" data-funcionarios='{{ funcionarios_json | tojson }}'></div>
+                        </div>
+                    </div>
+
+                    <!-- Todos los equipos sin asignar -->
+                    <div class="mb-3">
+                        <label class="text-center">Equipos disponibles</label>
+                        <div class="mb-1">
+                            <input type="text" class="form-control" id="searchEquipo" placeholder="Buscar">
+                        </div>
+                        <div class="highlight-container" id="equiposContainer"
+                            style="height: 150px; overflow-y: auto; border: 1px solid #ddd; border-radius: 5px">
+                            <table class="table table-sm table-hover table-bordered m-0" style="table-layout: auto;">
+                                <thead>
+                                    <tr>
+                                        <td style="width: 30px; border-radius: 5px 0 0 0">#</td>
+                                        <td>Tipo</td>
+                                        <td>Marca</td>
+                                        <td>Modelo</td>
+                                        <td>Cód. inventario</td>
+                                        <td>N° serie</td>
+                                        <td style="border-radius: 0 5px 0 0">Unidad</td>
+                                    </tr>
+                                </thead>
+                                <tbody id="equiposTable">
+                                    {% if equipos_sin_asignar %}
+                                    {% for equipo in equipos_sin_asignar %}
+                                    <tr data-codigo-inventario="{{ equipo.Cod_inventarioEquipo }}"
+                                        data-numero-serie="{{ equipo.Num_serieEquipo }}"
+                                        data-codigo-proveedor="{{ equipo.codigoproveedor_equipo }}"
+                                        data-unidad="{{ equipo.nombreUnidad }}"
+                                        data-observacion="{{ equipo.ObservacionEquipo }}" style="cursor: pointer">
+                                        <td><input class="no-delete-value equipo-checkbox" type="checkbox"
+                                                name="equipoSeleccionado" value="{{ equipo.idEquipo }}"></td>
+                                        <td>{{ equipo.nombreTipo_equipo }}</td>
+                                        <td>{{ equipo.nombreMarcaEquipo }}</td>
+                                        <td>{{ equipo.nombreModeloequipo }}</td>
+                                        <td>{{ equipo.Cod_inventarioEquipo }}</td>
+                                        <td>{{ equipo.Num_serieEquipo }}</td>
+                                        <td>{{ equipo.nombreUnidad }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="7" style="text-align: center">No hay equipos disponibles</td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="text-error-message"></div>
+                    </div>
+
+                    <!-- Input oculto para almacenar equipos seleccionados -->
+                    <div id="selectedEquipos"></div>
+
+                    <div class="row">
+                        <!-- Sección para observaciones -->
+                        <div>
+                            <div class="mb-3">
+                                <label for="observaciones">Observaciones</label>
+                                <textarea name="observacion" id="observaciones" rows="4"
+                                    class="form-control"></textarea>
+                            </div>
+                        </div>
+
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary btn-cerrar-asignacion" data-bs-dismiss="modal">Cerrar</button>
+                <button type="submit" form="form-asignacion-modal" class="btn btn-primary" id="btnGuardarAsignacion" disabled>
+                    <span class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                    <span class="btn-text">Guardar</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para ver detalles de equipo dentro del modal de agregar equipo -->
+<!--! Modal obsoleto, se mantiene por posbile uso futuro-->
+<div class="modal fade" id="modalViewDetails" tabindex="-1" aria-labelledby="modalViewDetailsLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalViewDetailsLabel">Detalles del equipo</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered">
+                    <tr>
+                        <td><strong>Tipo</strong></td>
+                        <td id="detalleTipo"></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Marca</strong></td>
+                        <td id="detalleMarca"></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Modelo</strong></td>
+                        <td id="detalleModelo"></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Código Inventario</strong></td>
+                        <td id="detalleCodigoInventario"></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Número de Serie</strong></td>
+                        <td id="detalleNumeroSerie"></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Código Proveedor</strong></td>
+                        <td id="detalleCodigoProveedor"></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Unidad</strong></td>
+                        <td id="detalleUnidad"></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Observaciones</strong></td>
+                        <td id="detalleObservacion"></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-primary" data-bs-target="#addAsignacionModal" data-bs-toggle="modal"
+                    data-bs-dismiss="modal">Volver</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% for asig in asignacion %}
+<!-- Modal para ver detalles de la asignación -->
+<div class="modal fade" id="modal-view-{{ asig.idEquipoAsignacion }}" tabindex="-1"
+    aria-labelledby="modal-view-title-{{ asig.idAsignacion }}" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalles de la Asignación #{{ asig.idAsignacion or 'Sin información' }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <h5>Datos del Funcionario</h5>
+                <table class="table table-bordered" style="table-layout: fixed">
+                    <tr>
+                        <td><strong>RUT</strong></td>
+                        <td>{{ asig.rutFuncionario if asig.rutFuncionario else "Sin información" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Nombre</strong></td>
+                        <td>{{ asig.nombreFuncionario if asig.nombreFuncionario else "Sin información" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cargo</strong></td>
+                        <td>{{ asig.cargoFuncionario if asig.cargoFuncionario else "Sin información" }}</td>
+                    </tr>
+                </table>
+
+                <br>
+
+                <h5>Datos de la Asignación</h5>
+                <table class="table table-bordered" style="table-layout: fixed">
+                    <tr>
+                        <td><strong>Fecha de asignación</strong></td>
+                        <td>
+                            {% if asig.fecha_inicioAsignacion %}
+                            {{ asig.fecha_inicioAsignacion.strftime("%d-%m-%Y") }}
+                            {% else %}
+                            Sin información
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Fecha de devolución</strong></td>
+                        <td>
+                            {% if asig.fechaDevolucion %}
+                            {{ asig.fechaDevolucion.strftime("%d-%m-%Y") }}
+                            {% else %}
+                            Sin devolver
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td><strong>Observaciones</strong></td>
+                        <td>{{ asig.ObservacionAsignacion if asig.ObservacionAsignacion else "Sin información" }}</td>
+                    </tr>
+                </table>
+
+                <br>
+
+                <h5>Datos del Equipo</h5>
+                <table class="table table-bordered" style="table-layout: fixed">
+                    <tr>
+                        <td><strong>Tipo</strong></td>
+                        <td>{{ asig.nombreTipo_equipo if asig.nombreTipo_equipo else "Sin información" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Marca</strong></td>
+                        <td>{{ asig.nombreMarcaEquipo if asig.nombreMarcaEquipo else "Sin información" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Modelo</strong></td>
+                        <td>{{ asig.nombreModeloequipo if asig.nombreModeloequipo else "Sin información" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cód. inventario</strong></td>
+                        <td>{{ asig.Cod_inventarioEquipo if asig.Cod_inventarioEquipo else "Sin información" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>N° serie</strong></td>
+                        <td>{{ asig.Num_serieEquipo if asig.Num_serieEquipo else "Sin información" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Cód. proveedor</strong></td>
+                        <td>{{ asig.codigoproveedor_equipo if asig.codigoproveedor_equipo else "Sin información" }}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Observaciones</strong></td>
+                        <td>{{ asig.ObservacionEquipo if asig.ObservacionEquipo else "Sin información" }}</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<!-- Modal de devolución de los equipos/asignaciones seleccionadas -->
+<div class="modal fade" id="modalConfirmarDevolucion" tabindex="-1" aria-labelledby="modalConfirmarDevolucionLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar devolución</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="formDevolver" method="POST" action="/asignacion/devolver_equipos">
+                <div class="modal-body">
+                    <p>Se devolverán los siguientes equipos:</p>
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="tablaDevolucionSeleccionados">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Funcionario</th>
+                                    <th>Tipo equipo</th>
+                                    <th>Marca equipo</th>
+                                    <th>Modelo equipo</th>
+                                    <th>Cód. inventario</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tbodyDevolucionSeleccionados">
+                                <!-- Se llenará dinámicamente por JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnContinuarDevolucion">Continuar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+{% from 'funciones_macro.html' import paginacion, subirArchivo, tablaDocumentos %}
+<!-- Modal para firmar asignaciones -->
+<div class="modal fade" id="modalFirmarAsignacion" tabindex="-1" aria-labelledby="modalFirmarAsignacionLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header text-black">
+                <h5 class="modal-title">Firmar Asignacion</h5>
+                <button type="button" class="btn-close btn-close-black" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Formulario para subir archivos -->
+                <form id="formSubirFirma" method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+
+                        <input class="form-control" type="file" id="archivoFirma" name="archivoFirma" accept=".pdf"
+                            required>
+                        <input type="hidden" name="equipoId" id="equipoIdSeleccionado">
+                        <input type="hidden" name="tipoEquipo" id="tipoEquipoSeleccionado">
+                        <div class="form-text">Equipo seleccionado: <span id="equipoSeleccionLabel" class="fw-semibold">-</span></div>
+                        <div class="text-muted form-text">Formatos aceptados: PDF (Máx. 5MB)</div>
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-upload me-2"></i>Subir Firma
+                            </button>
+                        </div>
+                    </div>
+
+                </form>
+
+                <div class="accordion mb-4" id="accordionDetalles">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingDetalles">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapseDetalles" aria-expanded="false"
+                                aria-controls="collapseDetalles">
+                                Detalles de la Asignación <div class="ms-2 text text-muted">N°</div><span id="detalleID"
+                                    class="text-muted"></span>
+                            </button>
+                        </h2>
+                        <div id="collapseDetalles" class="accordion-collapse collapse" aria-labelledby="headingDetalles"
+                            data-bs-parent="#accordionDetalles">
+                            <div class="accordion-body">
+                                <!--ESTO ES NECESARIO PARA LA BUSQUEDA DEL EQUIPO-->
+                                <table class="hidden table table-sm table-bordered tabla-detalle">
+                                    <tr>
+                                        <td>RUT</td>
+                                        <td id="rutFuncionario"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Nombre</td>
+                                        <td id="nombreFuncionario"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Cargo</td>
+                                        <td id="cargoFuncionario"></td>
+                                    </tr>
+                                </table>
+                                <!--ESTO ES NECESARIO PARA LA BUSQUEDA DEL EQUIPO-->
+                                <table class="hidden table table-sm table-bordered tabla-detalle">
+                                    <tr>
+                                        <td>Fecha de asignación</td>
+                                        <td id="fechaAsignacion"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Fecha de devolución</td>
+                                        <td id="fechaDevolucion"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Observaciones</td>
+                                        <td id="observacionesAsignacion"></td>
+                                    </tr>
+                                </table>
+
+                                <h6>Datos del Equipo</h6>
+                                <table class="table table-sm table-bordered tabla-detalle">
+                                    <tr>
+                                        <td>Tipo</td>
+                                        <td id="tipoEquipo"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Marca</td>
+                                        <td id="marcaEquipo"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Modelo</td>
+                                        <td id="modeloEquipo"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Cód. inventario</td>
+                                        <td id="codigoInventario"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>N° serie</td>
+                                        <td id="numeroSerie"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Cód. proveedor</td>
+                                        <td id="codigoProveedor"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Observaciones</td>
+                                        <td id="observacionesEquipo"></td>
+                                    </tr>
+                                </table>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+
+                <!-- Tabla de archivos subidos -->
+                <div class="mt-4">
+                    <h5>Archivos subidos</h5>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="tablaArchivosFirmados">
+                            <thead>
+                                <tr>
+                                    <th onclick="sortTable(0)">Nombre archivo</th>
+                                    <th>Equipo</th>
+                                    <th>Subido</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaFirmasBody">
+                                <tr>
+                                    <td colspan="4" class="text-center">No existen firmas para esta asignación</td>
+                                </tr>
+                            </tbody>
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modalFirmarAsignacion" tabindex="-1" aria-labelledby="modalFirmarAsignacionLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Firmar Asignación <span id="idAsignacionSeleccionada" class="text-muted"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formSubirFirma" method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="archivoFirma" class="form-label">Seleccione archivo de firma (PDF)</label>
+                        <input class="form-control" type="file" id="archivoFirma" name="archivoFirma" accept=".pdf"
+                            required>
+                        <input type="hidden" name="equipoId" id="equipoIdSeleccionado">
+                        <input type="hidden" name="tipoEquipo" id="tipoEquipoSeleccionado">
+                        <div class="form-text">Equipo seleccionado: <span id="equipoSeleccionLabel" class="fw-semibold">-</span></div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Subir firma</button>
+                </form>
+
+                <hr>
+                <h5>Archivos subidos</h5>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Archivo</th>
+                            <th>Equipo</th>
+                            <th>Subido</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaFirmasBody">
+                        <tr>
+                            <td colspan="4" class="text-center">Selecciona una asignación para ver sus archivos</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para firmar devolución -->
+<div class="modal fade" id="modalFirmarDevolucion" tabindex="-1" aria-labelledby="modalFirmarDevolucionLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <!-- Encabezado -->
+            <div class="modal-header text-black">
+                <h5 class="modal-title">Firmar Devolución</h5>
+                <button type="button" class="btn-close btn-close-black" data-bs-dismiss="modal"
+                    aria-label="Cerrar"></button>
+            </div>
+
+            <!-- Cuerpo -->
+            <div class="modal-body">
+                <!-- Formulario de subida -->
+                <form id="formSubirFirmaDevolucion" method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <input class="form-control" type="file" id="archivoFirmaDevolucion" name="archivoFirma"
+                            accept=".pdf" required>
+                        <div class="form-text text-muted">Solo se aceptan archivos PDF</div>
+                        <div class="d-grid gap-2 mt-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fa-solid fa-upload me-1"></i>Subir Firma
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Detalles -->
+                <div class="accordion mb-4" id="accordionDetallesDevolucion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header" id="headingDetallesDevolucion">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
+                                data-bs-target="#collapseDetallesDevolucion" aria-expanded="false"
+                                aria-controls="collapseDetallesDevolucion">
+                                Detalles de la Devolución <div class="ms-2 text text-muted">N°</div><span
+                                    id="detalleIDDevolucion" class="text-muted"></span>
+                            </button>
+                        </h2>
+                        <div id="collapseDetallesDevolucion" class="accordion-collapse collapse"
+                            aria-labelledby="headingDetallesDevolucion" data-bs-parent="#accordionDetallesDevolucion">
+                            <div class="accordion-body text-start">
+
+                                <table class="hidden table table-sm table-bordered tabla-detalle">
+                                    <tr>
+                                        <td>RUT</td>
+                                        <td id="rutFuncionarioDevolucion"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Nombre</td>
+                                        <td id="nombreFuncionarioDevolucion"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Cargo</td>
+                                        <td id="cargoFuncionarioDevolucion"></td>
+                                    </tr>
+                                </table>
+
+                                <table class="hidden table table-sm table-bordered tabla-detalle">
+                                    <tr>
+                                        <td>Fecha de asignación</td>
+                                        <td id="fechaAsignacionDevolucion"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Fecha de devolución</td>
+                                        <td id="fechaDevolucionDevolucion"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Observaciones</td>
+                                        <td id="observacionesDevolucion"></td>
+                                    </tr>
+                                </table>
+
+                                <h6>Datos del Equipo</h6>
+                                <table class="table table-sm table-bordered tabla-detalle">
+                                    <tr>
+                                        <td>Tipo</td>
+                                        <td id="tipoEquipoDevolucion"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Marca</td>
+                                        <td id="marcaEquipoDevolucion"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Modelo</td>
+                                        <td id="modeloEquipoDevolucion"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Cód. inventario</td>
+                                        <td id="codigoInventarioDevolucion"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>N° serie</td>
+                                        <td id="numeroSerieDevolucion"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Cód. proveedor</td>
+                                        <td id="codigoProveedorDevolucion"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Observaciones</td>
+                                        <td id="observacionesEquipoDevolucion"></td>
+                                    </tr>
+                                </table>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Archivos subidos -->
+                <div class="mt-4">
+                    <h5>Archivos subidos</h5>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="tablaArchivosFirmados">
+                            <thead>
+                                <tr>
+                                    <th onclick="sortTable(0)">Nombre archivo</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tablaFirmasBodyDevolucion">
+                                <tr>
+                                    <td colspan="2" class="text-center">No existen firmas para esta devolución</td>
+                                </tr>
+                            </tbody>
+
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer -->
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="modal fade" id="modalFirmarDevolucion" tabindex="-1" aria-labelledby="modalFirmarAsignacionLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Firmar Asignación <span id="idAsignacionSeleccionada" class="text-muted"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formSubirFirma" method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="archivoFirma" class="form-label">Seleccione archivo de firma (PDF)</label>
+                        <input class="form-control" type="file" id="archivoFirma" name="archivoFirma" accept=".pdf"
+                            required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Subir firma</button>
+                </form>
+
+                <hr>
+                <h5>Archivos subidos</h5>
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Archivo</th>
+                            <th>Acción</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tablaFirmasBody">
+                        <tr>
+                            <td colspan="2" class="text-center">Selecciona una asignación para ver sus archivos</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal genérico para detalles de asignación (solo uno en el DOM) -->
+<div class="modal fade" id="modalDetalleAsignacion" tabindex="-1" aria-labelledby="modalDetalleAsignacionLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalDetalleAsignacionLabel">
+                    Detalles de la Asignación <span id="modalDetalleAsignacionId" class="text-primary"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body" id="modalDetalleAsignacionBody">
+                <!-- Se llenará dinámicamente por JS -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación de traslado -->
+<div class="modal fade" id="modalConfirmarTraslado" tabindex="-1" aria-labelledby="modalConfirmarTrasladoLabel"
+    aria-hidden="true">
+    <div class="modal-dialog ">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalConfirmarTrasladoLabel">¿Desea realizar el traslado?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Uno o más equipos seleccionados están en una unidad diferente a la del funcionario.<br>
+                    ¿Desea generar automáticamente el traslado de estos equipos?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="btnCancelarTraslado" data-bs-dismiss="modal">No,
+                    solo asignar</button>
+                <button type="button" class="btn btn-primary" id="btnAceptarTraslado">Sí, generar traslado</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="trasladoModal" tabindex="-1" aria-labelledby="trasladoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="trasladoModalLabel">Traslado de Equipos</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Seleccionar</th>
+                            <th>Modelo</th>
+                            <th>Tipo</th>
+                            <th>Marca</th>
+                            <th>Código Inventario</th>
+                            <th>Número de Serie</th>
+                        </tr>
+                    </thead>
+                    <tbody id="equiposLista">
+                        <tr>
+                            <td colspan="6" class="text-center">Seleccione una unidad para trasladar</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="submit" class="btn btn-primary">Confirmar Traslado</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .tabla-detalle {
+        width: 100%;
+        table-layout: fixed;
+    }
+
+    .tabla-detalle td:first-child {
+        width: 30%;
+        /* Etiqueta */
+        white-space: nowrap;
+        font-weight: bold;
+    }
+
+    .tabla-detalle td:last-child {
+        width: 70%;
+        /* Valor */
+        word-break: break-word;
+    }
+
+    .accordion-body h6 {
+        margin-top: 1rem;
+    }
+</style>
+

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Imprimir Traslados</title>
+  <style>
+    @page { margin: 15mm; }
+    body { font-family: Arial, Helvetica, sans-serif; color: #111; }
+    .header { text-align: center; margin-bottom: 12px; }
+    .header h1 { margin: 0 0 6px 0; font-size: 18px; }
+    .meta { font-size: 12px; margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    thead { display: table-header-group; }
+    th, td { border: 1px solid #333; padding: 6px; }
+    th { background: #f2f2f2; }
+    .footer { margin-top: 10px; font-size: 10px; text-align: right; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Traslados - JUNJI</h1>
+    <div>Junta Nacional de Jardines Infantiles</div>
+  </div>
+
+  <div class="meta">
+    <strong>Filtros:</strong>
+    Búsqueda: {{ filtros.q or '---' }} |
+    Origen: {{ filtros.origen_nombre or 'Todos' }} |
+    Destino: {{ filtros.destino_nombre or 'Todos' }} |
+    Fecha: {{ filtros.desde or '---' }} a {{ filtros.hasta or '---' }}
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:35px;">N°</th>
+        <th>Fecha</th>
+        <th>Origen</th>
+        <th>Destino</th>
+        <th>Cant. equipos</th>
+        <th>Equipos</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in traslados %}
+      <tr>
+        <td style="text-align:center;">{{ loop.index }}</td>
+        <td>{{ t.fechatraslado.strftime('%d-%m-%Y') if t.fechatraslado else '' }}</td>
+        <td>{{ t.nombreOrigen }}</td>
+        <td>{{ t.nombreDestino }}</td>
+        <td style="text-align:center;">{{ t.equipos|length }}</td>
+        <td>
+          {% if t.equipos %}
+            {% for e in t.equipos %}
+              {{ e.nombreModeloequipo }} ({{ e.Cod_inventarioEquipo or 's/cod' }}){% if not loop.last %}; {% endif %}
+            {% endfor %}
+          {% else %}
+            Sin equipos
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+      {% if not traslados %}
+      <tr>
+        <td colspan="6" style="text-align:center;">No hay resultados con los filtros seleccionados.</td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+  <div class="footer">Impreso automáticamente</div>
+
+  <script>
+    window.addEventListener('load', function () {
+      setTimeout(function () { window.print(); }, 200);
+    });
+  </script>
+</body>
+</html>

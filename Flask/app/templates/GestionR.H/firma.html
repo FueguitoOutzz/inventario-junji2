@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block body %}
+{% from 'funciones_macro.html' import paginacion, subirArchivo, tablaDocumentos %}
+
+<div class="row">
+
+    <div class="col-md-5">
+        <!-- Esta sección muestra los errores a través de flash, si es que existen -->
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for message in messages %}
+
+        <div class="custom-alert" role="alert">
+            {{ message }}
+            <button type="button" class="close" 
+                data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+        <!-- Fin de la sección de errores -->
+        
+        {% if location == 'devolucion' %}
+            <a class="btn btn-primary" href="/asignacion">Volver</a>
+        {% elif location == 'traslado' %}
+            <a class="btn btn-primary" href="/traslado">Volver</a>
+        {% elif location == 'incidencia' %}
+            <a class="btn btn-primary" href="/incidencia">Volver</a>
+        {% else %}
+            <a class="btn btn-primary" href="/{{ location }}">Volver</a>
+        {% endif %}
+        <!-- ----- -->
+        {{ subirArchivo(location, id) }}
+    </div>
+    
+    <br />
+    
+    {% if location == 'asignacion' %}
+        <h2>Firmas de Asignaciones</h2>
+    {% elif location == 'traslado' %}
+        <h2>Firmas de Traslados</h2>
+    {% else %}
+        <h2>Firmas de Devoluciones</h2>
+    {% endif %}
+    
+    <!-- Tabla que muestra los documentos según el tipo -->
+    {{ tablaDocumentos(id, (nombreFirmado,), location) }}
+
+{% endblock %}

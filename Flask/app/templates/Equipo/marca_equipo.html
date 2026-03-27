@@ -1,0 +1,81 @@
+{% extends "layout.html" %}
+{% block body %}
+{% from 'funciones_macro.html' import paginacion %}
+
+<div class="row">
+    <div class="col">
+        <h2>Marcas de equipos</h2>
+
+        <!-- Barra de herramientas -->
+        <div class="toolbar">
+            <div class="toolbar-1">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modal-add-marca-equipo">Agregar</button>
+            </div>
+            <div class="toolbar-2">
+                <input name="palabra" type="text" class="search-box" placeholder="Buscar marca de equipo..." id="buscador" onkeyup="busqueda('myTableBody')"/>
+            </div>
+            <div class="toolbar-3">
+                <button type="button" class="btn btn-warning edit-button" data-bs-toggle="tooltip" data-bs-title="Editar" disabled><i class="bi bi-pencil-square"></i></button>
+                <button type="button" class="btn btn-danger delete-button" data-title="Eliminar marca(s)" data-message="¿Estás seguro de que deseas eliminar las marcas seleccionadas? Esto eliminará también las relaciones asociadas" data-url="" data-bs-toggle="tooltip" data-bs-title="Eliminar" disabled><i class="bi bi-trash-fill"></i></button>
+                <button type="button" class="btn btn-outline-secondary shadow-sm" data-bs-toggle="modal" data-bs-target="#printMarcaModal" id="openPrintMarca">
+                    <i class="bi bi-printer"></i> Imprimir
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabla de marcas de equipo -->
+        <div class="table-responsive">
+            <table class="table table-striped table-bordered table-hover" >
+                <!-- Encabezado de la tabla -->
+                <thead>
+                    <tr>
+                        <th class="checkbox-column" onclick="toggleSelectAll()">Todo</th>
+                        <th class="sortable-column" onclick="sortTable(1,this)">Nombre marca</th>
+                    </tr>
+                </thead>
+                <!-- Contenido de la tabla -->
+                <tbody id="myTableBody">
+                    {% if marca_equipo %}
+                        {% for marcae in marca_equipo %}
+                        <tr data-id="{{ marcae.idMarca_Equipo }}">
+                            <td class="checkbox-column"><input type="checkbox" class="checkbox-table row-checkbox"></td>
+                            <td class="toCheck">{{ marcae.nombreMarcaEquipo }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center">No hay datos disponibles.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        {% include 'Equipo/marca_equipo.modals.html' %}
+        <script src="../../static/js/Equipo/marcaEquipo.js"></script>
+
+        <!-- Modal impresión marcas -->
+        <div class="modal fade" id="printMarcaModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Imprimir Marcas</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <label for="printMarcaQuery" class="form-label">Buscar</label>
+                        <input type="text" id="printMarcaQuery" class="form-control" placeholder="Nombre de la marca...">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-outline-secondary" id="clearMarcaPrint">Limpiar filtros</button>
+                        <button type="button" class="btn btn-success" id="printMarcaButton">Imprimir todo</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        
+    </div>
+</div>
+{% endblock %}

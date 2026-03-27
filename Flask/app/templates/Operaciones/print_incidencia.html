@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Imprimir Incidencias</title>
+  <style>
+    @page { margin: 15mm; }
+    body { font-family: Arial, Helvetica, sans-serif; color: #111; }
+    .header { text-align: center; margin-bottom: 12px; }
+    .header h1 { margin: 0 0 6px 0; font-size: 18px; }
+    .meta { font-size: 12px; margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    thead { display: table-header-group; }
+    th, td { border: 1px solid #333; padding: 6px; }
+    th { background: #f2f2f2; }
+    .footer { margin-top: 10px; font-size: 10px; text-align: right; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Incidencias - JUNJI</h1>
+    <div>Junta Nacional de Jardines Infantiles</div>
+  </div>
+
+  <div class="meta">
+    <strong>Filtros:</strong>
+    Búsqueda: {{ filtros.q or '---' }} |
+    Estado: {{ filtros.estado or 'Todos' }} |
+    Fecha: {{ filtros.desde or '---' }} a {{ filtros.hasta or '---' }}
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:35px;">N°</th>
+        <th>Estado</th>
+        <th>Tipo incidencia</th>
+        <th>Tipo equipo</th>
+        <th>Modelo</th>
+        <th>Observación</th>
+        <th>Fecha</th>
+        <th>C. Inventario</th>
+        <th>N° serie</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for inc in incidencias %}
+      <tr>
+        <td style="text-align:center;">{{ loop.index }}</td>
+        <td>{{ inc.estadoIncidencia }}</td>
+        <td>{{ inc.nombreIncidencia }}</td>
+        <td>{{ inc.nombreTipo_equipo }}</td>
+        <td>{{ inc.nombreModeloequipo }}</td>
+        <td>{{ inc.observacionIncidencia or '-' }}</td>
+        <td>{{ inc.fechaIncidencia.strftime('%d-%m-%Y') if inc.fechaIncidencia else '' }}</td>
+        <td>{{ inc.cod_inventarioEquipo }}</td>
+        <td>{{ inc.Num_serieEquipo }}</td>
+      </tr>
+      {% endfor %}
+      {% if not incidencias %}
+      <tr>
+        <td colspan="9" style="text-align:center;">No hay resultados con los filtros seleccionados.</td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+  <div class="footer">Impreso automáticamente</div>
+
+  <script>
+    window.addEventListener('load', function () {
+      setTimeout(function () { window.print(); }, 200);
+    });
+  </script>
+</body>
+</html>

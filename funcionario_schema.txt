@@ -1,0 +1,9 @@
+{'Field': 'rutFuncionario', 'Type': 'varchar(10)', 'Null': 'NO', 'Key': 'PRI', 'Default': None, 'Extra': ''}
+{'Field': 'nombreFuncionario', 'Type': 'varchar(250)', 'Null': 'NO', 'Key': '', 'Default': None, 'Extra': ''}
+{'Field': 'cargoFuncionario', 'Type': "enum('ADMINISTRATIVO','AUXILIAR','PROFESIONAL','TÉCNICO','DIRECTOR REGIONAL','ENCARGADA/O')", 'Null': 'NO', 'Key': '', 'Default': None, 'Extra': ''}
+{'Field': 'correoFuncionario', 'Type': 'varchar(250)', 'Null': 'NO', 'Key': 'UNI', 'Default': None, 'Extra': ''}
+{'Field': 'activoFuncionario', 'Type': 'tinyint(1)', 'Null': 'NO', 'Key': 'MUL', 'Default': '1', 'Extra': ''}
+{'Field': 'motivo_inactividad_id', 'Type': 'int(11)', 'Null': 'YES', 'Key': 'MUL', 'Default': None, 'Extra': ''}
+{'Field': 'detalle_inactividad', 'Type': 'varchar(255)', 'Null': 'YES', 'Key': '', 'Default': None, 'Extra': ''}
+{'Field': 'fecha_inactividad', 'Type': 'datetime', 'Null': 'YES', 'Key': '', 'Default': None, 'Extra': ''}
+{'Field': 'idUnidad', 'Type': 'int(11)', 'Null': 'NO', 'Key': 'MUL', 'Default': None, 'Extra': ''}

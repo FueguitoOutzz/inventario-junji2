@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <title>Imprimir Funcionarios</title>
+  <style>
+    @page { margin: 15mm; }
+    body { font-family: Arial, Helvetica, sans-serif; color: #111; }
+    .header { text-align: center; margin-bottom: 12px; }
+    .header h1 { margin: 0 0 6px 0; font-size: 18px; }
+    .meta { font-size: 12px; margin-bottom: 10px; }
+    table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    thead { display: table-header-group; }
+    th, td { border: 1px solid #333; padding: 6px; }
+    th { background: #f2f2f2; }
+    .footer { margin-top: 10px; font-size: 10px; text-align: right; }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Funcionarios - JUNJI</h1>
+    <div>Junta Nacional de Jardines Infantiles</div>
+  </div>
+
+  <div class="meta">
+    <strong>Filtros:</strong>
+    Búsqueda: {{ filtros.q or '---' }} |
+    Unidad: {{ filtros.unidad or 'Todas' }} |
+    Cargo: {{ filtros.cargo or 'Todos' }}
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th style="width:40px;">N°</th>
+        <th>RUT</th>
+        <th>Nombre</th>
+        <th>Cargo</th>
+        <th>Unidad</th>
+        <th>Correo</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for f in funcionarios %}
+      <tr>
+        <td style="text-align:center;">{{ loop.index }}</td>
+        <td>{{ f.rutFuncionario }}</td>
+        <td>{{ f.nombreFuncionario }}</td>
+        <td>{{ f.cargoFuncionario }}</td>
+        <td>{{ f.nombreUnidad }}</td>
+        <td>{{ f.correoFuncionario }}</td>
+      </tr>
+      {% endfor %}
+      {% if not funcionarios %}
+      <tr>
+        <td colspan="6" style="text-align:center;">No hay resultados con los filtros seleccionados.</td>
+      </tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+  <div class="footer">Impreso automáticamente</div>
+
+  <script>
+    window.addEventListener('load', function () {
+      setTimeout(function () { window.print(); }, 200);
+    });
+  </script>
+</body>
+</html>
