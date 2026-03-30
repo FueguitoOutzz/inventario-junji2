@@ -707,6 +707,21 @@ def edit_funcionario():
             f"UPDATE funcionario SET {', '.join(update_fields)} WHERE rutFuncionario = %s",
             tuple(params),
         )
+
+        # Sincronización inversa: Si el funcionario es una unidad espejo 
+        # (cuando rutFuncionario coincide con el idUnidad asignado)
+        try:
+            rut_norm = str(data['rut_funcionario']).replace('-', '').strip()
+            # Si el RUT es numérico y coincide con idUnidad, es una unidad espejo
+            if rut_norm.isdigit() and int(rut_norm) == int(data['codigo_Unidad']):
+                cur.execute("""
+                    UPDATE unidad 
+                    SET nombreUnidad = %s
+                    WHERE idUnidad = %s
+                """, (data['nombre_funcionario'], data['codigo_Unidad']))
+        except (ValueError, TypeError):
+            pass
+
         mysql.connection.commit()
         cur.close()
 

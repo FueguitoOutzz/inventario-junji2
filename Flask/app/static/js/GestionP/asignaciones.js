@@ -43,7 +43,7 @@ function actualizarTablaAsignaciones(asignaciones) {
 
     if (!Array.isArray(asignaciones) || asignaciones.length === 0) {
         tbody.innerHTML =
-            '<tr><td colspan="8" class="text-center">No hay datos disponibles.</td></tr>';
+            '<tr><td colspan="10" class="text-center">No hay datos disponibles.</td></tr>';
         actualizarBotonesBarraSuperior();
         return;
     }
@@ -63,8 +63,11 @@ function actualizarTablaAsignaciones(asignaciones) {
         row.classList.add("selectable-row");
         row.setAttribute("data-marca-equipo", asig.nombreMarcaEquipo || "");
         row.setAttribute("data-modelo-equipo", asig.nombreModeloequipo || "");
-                row.setAttribute("data-id-equipo", asig.idEquipo || "");
-                row.setAttribute("data-tipo-equipo", asig.nombreTipo_equipo || "");
+        row.setAttribute("data-id-equipo", asig.idEquipo || "");
+        row.setAttribute("data-tipo-equipo", asig.nombreTipo_equipo || "");
+
+        const obs = asig.ObservacionEquipo || '';
+        const obsTruncated = obs.length > 30 ? obs.substring(0, 30) + '...' : (obs || '-');
 
         row.innerHTML = `
       <td>
@@ -82,6 +85,10 @@ function actualizarTablaAsignaciones(asignaciones) {
       <td class="toCheck">${asig.nombreFuncionario || "-"}</td>
       <td class="toCheck">${asig.rutFuncionario || "-"}</td>
       <td class="toCheck">${asig.nombreTipo_equipo || "-"}</td>
+      <td class="toCheck">${asig.Cod_inventarioEquipo || "-"}</td>
+      <td class="toCheck" data-bs-toggle="tooltip" title="${obs}">
+        ${obsTruncated}
+      </td>
       <td class="toCheck">${formatFecha(asig.fecha_inicioAsignacion)}</td>
       <td class="toCheck">${asig.fechaDevolucion ? formatFecha(asig.fechaDevolucion) : "Sin devolver"}</td>
 
@@ -116,10 +123,14 @@ function actualizarTablaAsignaciones(asignaciones) {
 function formatFecha(fecha) {
     if (!fecha) return '-';
     try {
-        return new Date(fecha).toLocaleDateString();
+        const d = new Date(fecha);
+        if (isNaN(d.getTime())) return '-';
+        const day = String(d.getDate()).padStart(2, '0');
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const year = d.getFullYear();
+        return `${day}-${month}-${year}`;
     } catch (error) {
-        console.error("Fecha inválida:", fecha);
-        return "Fecha inválida";
+        return "-";
     }
 }
 

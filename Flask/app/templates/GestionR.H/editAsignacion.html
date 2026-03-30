@@ -11,20 +11,7 @@
                 <div class="form-group">
                     <div>
                         <label for="fechaasignacion"> Fecha de Inicio:</label>
-                        <input type="date" name="fechaasignacion" id="fechaasignacion">
-                        <script>
-                            date = new Date();
-                            year = date.getFullYear();
-                            month = date.getMonth() + 1;
-                            day = date.getDate();
-                            if (month < 10) {
-                                month = "0" + month
-                            }
-                            formatedDate = year + "-" + month + "-" + day
-                            //console.log(formatedDate)
-                            document.getElementById("fechaasignacion")
-                                .setAttribute("value", formatedDate);
-                        </script>
+                        <input type="date" name="fechaasignacion" id="fechaasignacion" value="{{ asignacion.fecha_inicioAsignacion.strftime('%Y-%m-%d') if asignacion.fecha_inicioAsignacion else '' }}">
                     </div>
                     <br>
                     <div class="form-group">

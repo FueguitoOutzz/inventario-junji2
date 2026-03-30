@@ -14,10 +14,11 @@
                         <!-- Fecha de asignación -->
                         <div class="col-md-5">
                             <div class="mb-3 fecha-asignacion">
-                                <label for="fecha-asignacion">Fecha asignación<span
+                                <label for="fechaasignacion">Fecha asignación<span
                                         style="color: red; margin-left: 5px">*</span></label>
-                                <input type="date" name="fecha-asignacion"
-                                    class="form-control campo-obligatorio fecha-input validar-fecha-30-0">
+                                <input type="date" name="fechaasignacion"
+                                    class="form-control campo-obligatorio fecha-input validar-fecha-30-0"
+                                    value="{{ today }}">
                                 <div class="text-error-message"></div>
                             </div>
                         </div>
@@ -99,6 +100,7 @@
                                         <td>Modelo</td>
                                         <td>Cód. inventario</td>
                                         <td>N° serie</td>
+                                        <td>Observaciones</td>
                                         <td style="border-radius: 0 5px 0 0">Unidad</td>
                                     </tr>
                                 </thead>
@@ -117,12 +119,15 @@
                                         <td>{{ equipo.nombreModeloequipo }}</td>
                                         <td>{{ equipo.Cod_inventarioEquipo }}</td>
                                         <td>{{ equipo.Num_serieEquipo }}</td>
+                                        <td data-bs-toggle="tooltip" title="{{ equipo.ObservacionEquipo if equipo.ObservacionEquipo else '' }}">
+                                          {{ equipo.ObservacionEquipo[:20] + '...' if equipo.ObservacionEquipo and equipo.ObservacionEquipo|length > 20 else (equipo.ObservacionEquipo if equipo.ObservacionEquipo else '-') }}
+                                        </td>
                                         <td>{{ equipo.nombreUnidad }}</td>
                                     </tr>
                                     {% endfor %}
                                     {% else %}
                                     <tr>
-                                        <td colspan="7" style="text-align: center">No hay equipos disponibles</td>
+                                        <td colspan="8" style="text-align: center">No hay equipos disponibles</td>
                                     </tr>
                                     {% endif %}
                                 </tbody>

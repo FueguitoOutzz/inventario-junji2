@@ -112,6 +112,7 @@
             <th onclick="sortTable(6,this)" style="width: 12%;">Unidad</th>
             <th onclick="sortTable(7,this)" style="width: 10%;">Tipo equipo</th>
             <th onclick="sortTable(8,this)">Modelo</th>
+            <th onclick="sortTable(9,this)">Observaciones</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -129,6 +130,9 @@
             <td>{{ equi.nombreUnidad }}</td>
             <td>{{ equi.nombreTipo_equipo }}</td>
             <td>{{ equi.nombreModeloequipo }}</td>
+            <td data-bs-toggle="tooltip" title="{{ equi.ObservacionEquipo if equi.ObservacionEquipo else '' }}">
+                {{ equi.ObservacionEquipo[:30] + '...' if equi.ObservacionEquipo and equi.ObservacionEquipo|length > 30 else (equi.ObservacionEquipo if equi.ObservacionEquipo else '-') }}
+            </td>
             <td>
               <a href="/equipo_detalles/{{ equi.idEquipo }}" class="btn button-info">
                 <i class="bi bi-eye-fill"></i>
@@ -148,7 +152,7 @@
           {% endfor %}
           {% else %}
           <tr>
-            <td colspan="10" class="text-center">No hay datos disponibles.</td>
+            <td colspan="11" class="text-center">No hay datos disponibles.</td>
           </tr>
           {% endif %}
         </tbody>

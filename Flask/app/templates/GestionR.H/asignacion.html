@@ -146,8 +146,10 @@
               RUT Funcionario / Codigo Unidad
             </th>
             <th onclick="sortTable(4, this)">Tipo de equipo</th>
-            <th onclick="sortTable(5, this)">Fecha de asignación</th>
-            <th onclick="sortTable(6, this)">Fecha de devolución</th>
+            <th onclick="sortTable(5, this)">C. Inv</th>
+            <th onclick="sortTable(6, this)">Observación Equipo</th>
+            <th onclick="sortTable(7, this)">Fecha de asignación</th>
+            <th onclick="sortTable(8, this)">Fecha de devolución</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -190,6 +192,12 @@
               {{ asig.nombreTipo_equipo if asig.nombreTipo_equipo else '-' }}
             </td>
             <td class="toCheck">
+              {{ asig.Cod_inventarioEquipo if asig.Cod_inventarioEquipo else '-' }}
+            </td>
+            <td class="toCheck" data-bs-toggle="tooltip" title="{{ asig.ObservacionEquipo if asig.ObservacionEquipo else '' }}">
+              {{ asig.ObservacionEquipo[:30] + '...' if asig.ObservacionEquipo and asig.ObservacionEquipo|length > 30 else (asig.ObservacionEquipo if asig.ObservacionEquipo else '-') }}
+            </td>
+            <td class="toCheck">
               {{ asig.fecha_inicioAsignacion.strftime('%d-%m-%Y') }}
             </td>
             <td class="toCheck">
@@ -220,7 +228,7 @@
           </tr>
           {% endfor %} {% else %}
           <tr>
-            <td colspan="8">No hay asignaciones registradas</td>
+            <td colspan="10">No hay asignaciones registradas</td>
           </tr>
           {% endif %}
         </tbody>

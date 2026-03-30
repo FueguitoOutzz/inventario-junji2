@@ -32,6 +32,7 @@
       <th>Unidad</th>
       <th>Tipo equipo</th>
       <th>Modelo</th>
+      <th>Observaciones</th>
     </tr>
   </thead>
   <tbody id="equiposUnidadTableBody">
@@ -45,8 +46,16 @@
       <td>{{ eq.nombreUnidad }}</td>
       <td>{{ eq.tipoEquipo }}</td>
       <td>{{ eq.modeloEquipo }}</td>
+      <td data-bs-toggle="tooltip" title="{{ eq.ObservacionEquipo if eq.ObservacionEquipo else '' }}">
+        {{ eq.ObservacionEquipo[:30] + '...' if eq.ObservacionEquipo and eq.ObservacionEquipo|length > 30 else (eq.ObservacionEquipo if eq.ObservacionEquipo else '-') }}
+      </td>
     </tr>
-    {% endfor %}
+{% endfor %}
+{% if not equipos %}
+    <tr>
+      <td colspan="9" class="text-center">No hay datos disponibles.</td>
+    </tr>
+{% endif %}
   </tbody>
 </table>
 

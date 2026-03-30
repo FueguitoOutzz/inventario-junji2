@@ -442,12 +442,16 @@ $(document).ready(function () {
 
   $(document).on("click", ".sugerencia-item", function () {
     let nombre = $(this).data("nombre");
-    let rutCompleto = String($(this).data("rut"));
+    let rutCompleto = String($(this).data("rut")).trim();
+    // Limpiar cualquier prefijo de nombre si existiera en data-rut
+    let match = rutCompleto.match(/(\d{1,2}(?:\.?\d{3}){2}-[\dkK])$/);
+    if (match) rutCompleto = match[1].replace(/\./g, '');
+    
     let [rutSinDV, dv] = rutCompleto.split("-");
 
     $("#nombre_funcionario").val(nombre);
     $("#rut_funcionario").val(rutSinDV);
-    $("#rut_verificador").val(dv);
+    $("#rut_verificador").val(dv || '');
     $("#rut_completo").val(rutCompleto);
 
     sugerenciasDiv.hide();
@@ -546,10 +550,15 @@ function submitAsignacionForm(form, valor) {
 $(document).ready(function () {
   $(document).on("submit", "#form-asignacion-modal", function (e) {
     const form = this;
+    
+    // Si ya validamos traslado, permitimos el envío normal
     if (form.dataset.skipTrasladoConfirm === "1") {
-      delete form.dataset.skipTrasladoConfirm;
-      return;
+      return; // Permite que el evento siga su curso natural
     }
+
+    // Antes de validar traslado, verificamos si es válido el form básico (nombre/rut)
+    // El handler anterior (línea 464) ya hace validaciones y preventDefault si hay error.
+    // Si llegamos aquí y ya fue cancelado por el handler anterior, paramos.
     if (e.isDefaultPrevented()) return;
 
     const equipos = Array.from(
@@ -562,9 +571,10 @@ $(document).ready(function () {
     const rut = rutInput ? rutInput.value.trim() : "";
     if (!rut) return;
 
-    e.preventDefault();
+    e.preventDefault(); // Detenemos para validar traslado
 
     const formData = new FormData(form);
+    // Asegurarnos de que el RUT y equipos viajen igual que en el submit real
     formData.delete("equiposAsignados[]");
     equipos.forEach((eq) => formData.append("equiposAsignados[]", eq));
     formData.set("rut_funcionario", rut);
@@ -593,14 +603,12 @@ $(document).ready(function () {
 
           if (aceptar) {
             aceptar.onclick = function () {
-              if (document.activeElement) document.activeElement.blur();
               modal.hide();
               submitAsignacionForm(form, "1");
             };
           }
           if (cancelar) {
             cancelar.onclick = function () {
-              if (document.activeElement) document.activeElement.blur();
               modal.hide();
               submitAsignacionForm(form, "0");
             };
@@ -619,11 +627,33 @@ $(document).ready(function () {
 document.addEventListener("DOMContentLoaded", () => {
   const modalEl = document.getElementById("addAsignacionModal");
   if (!modalEl) return;
+
   modalEl.addEventListener("hide.bs.modal", (event) => {
     if (modalEl.classList.contains("submitting")) {
       event.preventDefault();
     }
   });
+
+  // Lógica para pre-seleccionar equipos si vienen en la URL (?ids=1,2,3)
+  const urlParams = new URLSearchParams(window.location.search);
+  const idsParam = urlParams.get('ids');
+  if (idsParam) {
+    const ids = idsParam.split(',');
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.show();
+
+    setTimeout(() => {
+      ids.forEach(id => {
+        const checkbox = document.querySelector(`.equipo-checkbox[value="${id}"]`);
+        if (checkbox) {
+          checkbox.checked = true;
+          checkbox.dispatchEvent(new Event('change'));
+        }
+      });
+      // Limpiar la URL para evitar re-apertura al recargar
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }, 500);
+  }
 });
 
 $(document).on("submit", "#form-asignacion-modal", function (e) {

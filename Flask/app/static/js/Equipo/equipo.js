@@ -77,13 +77,16 @@ function actualizarTabla(equipos) {
   tbody.innerHTML = "";
 
   if (equipos.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="10" class="text-center">No hay datos disponibles.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="11" class="text-center">No hay datos disponibles.</td></tr>';
     return;
   }
 
   equipos.forEach(equipo => {
     const row = document.createElement("tr");
     row.setAttribute("data-id", equipo.idEquipo);
+    const obs = equipo.ObservacionEquipo || '';
+    const obsTruncated = obs.length > 30 ? obs.substring(0, 30) + '...' : (obs || '-');
+    
     row.innerHTML = `
       <td><input type="checkbox" class="checkbox-table row-checkbox no-delete-value"></td>
       <td>${equipo.Cod_inventarioEquipo}</td>
@@ -94,6 +97,9 @@ function actualizarTabla(equipos) {
       <td>${equipo.nombreUnidad}</td>
       <td>${equipo.nombreTipo_equipo}</td>
       <td>${equipo.nombreModeloequipo}</td>
+      <td data-bs-toggle="tooltip" title="${obs}">
+        ${obsTruncated}
+      </td>
       <td>
         <a href="/equipo_detalles/${equipo.idEquipo}" class="btn button-info">
           <i class="bi bi-eye-fill"></i>
@@ -462,7 +468,15 @@ $(document).ready(function () {
 //Redireccion al modulo de asignacion desde equipos
 $(document).ready(function () {
   $("#assign-button").on("click", function () {
-    window.location.href = "/asignacion"; // Cambia "/asignacion" por la URL correcta
+    const selectedIds = Array.from(document.querySelectorAll('.row-checkbox:checked'))
+      .map(cb => cb.closest('tr').getAttribute('data-id'))
+      .filter(id => id);
+    
+    if (selectedIds.length > 0) {
+      window.location.href = `/asignacion?ids=${selectedIds.join(',')}`;
+    } else {
+      window.location.href = "/asignacion";
+    }
   });
 });
 
@@ -736,6 +750,7 @@ document.addEventListener("DOMContentLoaded", function () {
   var checkboxes = document.querySelectorAll(".row-checkbox");
   var incidenciaButton = document.getElementById("incidencia-button");
   var deleteButton = document.getElementById("delete-selected-button");
+  var assignButton = document.getElementById("assign-button");
 
   function actualizarEstadoBotones() {
     var selectedCheckboxes = document.querySelectorAll(".row-checkbox:checked");
@@ -751,8 +766,10 @@ document.addEventListener("DOMContentLoaded", function () {
     // Habilita el botón de eliminar si hay al menos 1 checkbox seleccionado
     if (seleccionados > 0) {
       deleteButton.removeAttribute("disabled");
+      if (assignButton) assignButton.removeAttribute("disabled");
     } else {
       deleteButton.setAttribute("disabled", "true");
+      if (assignButton) assignButton.setAttribute("disabled", "true");
     }
   }
 

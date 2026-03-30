@@ -23,12 +23,15 @@ function actualizarTablaEquiposUnidad(equipos) {
   tbody.innerHTML = "";
 
   if (!equipos.length) {
-    tbody.innerHTML = '<tr><td colspan="8" class="text-center">No hay datos disponibles.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="text-center">No hay datos disponibles.</td></tr>';
     return;
   }
 
   equipos.forEach(eq => {
     const row = document.createElement("tr");
+    const obs = eq.ObservacionEquipo || '';
+    const obsTruncated = obs.length > 30 ? obs.substring(0, 30) + '...' : (obs || '-');
+    
     row.innerHTML = `
       <td>${eq.Cod_inventarioEquipo || ""}</td>
       <td>${eq.Num_serieEquipo || ""}</td>
@@ -38,6 +41,9 @@ function actualizarTablaEquiposUnidad(equipos) {
       <td>${eq.nombreUnidad || ""}</td>
       <td>${eq.tipoEquipo || ""}</td>
       <td>${eq.modeloEquipo || ""}</td>
+      <td data-bs-toggle="tooltip" title="${obs}">
+        ${obsTruncated}
+      </td>
     `;
     tbody.appendChild(row);
   });

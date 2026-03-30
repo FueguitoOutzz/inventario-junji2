@@ -343,7 +343,7 @@ def Asignacion(page=1):
         e.ObservacionEquipo
     FROM asignacion a
     LEFT JOIN funcionario f ON a.rutFuncionario = f.rutFuncionario
-    JOIN equipo_asignacion ea ON a.idAsignacion = ea.idAsignacion
+    LEFT JOIN equipo_asignacion ea ON a.idAsignacion = ea.idAsignacion
     LEFT JOIN devolucion d ON ea.idEquipoAsignacion = d.idEquipoAsignacion
     LEFT JOIN equipo e ON e.idEquipo = ea.idEquipo
     LEFT JOIN modelo_equipo me ON e.idModelo_equipo = me.idModelo_Equipo
@@ -430,7 +430,8 @@ def Asignacion(page=1):
         asignacion=data,
         equipos_sin_asignar=equipos_sin_asignar,
         page=page,
-        lastpage=lastpage
+        lastpage=lastpage,
+        today=date.today().strftime('%Y-%m-%d')
     )
 
 
@@ -589,8 +590,21 @@ def create_asignacion():
         return redirect(url_for("asignacion.Asignacion"))
 
     # Obtiene los datos del formulario
-    fecha_asignacion = request.form.get('fecha-asignacion') 
+    fecha_asignacion = request.form.get('fechaasignacion') or request.form.get('fecha-asignacion') or date.today().strftime('%Y-%m-%d')
     rut_funcionario = request.form.get('rut_funcionario')
+    # Sanitizar RUT (si viene 'Nombre RUT' del frontend por error)
+    if rut_funcionario:
+        import re
+        # Extraer solo el RUT al final (ej: "MARCO 21.072.259-9" -> "21.072.259-9")
+        match = re.search(r'(\d{1,2}(?:\.?\d{3}){2}-[\dkK])$', rut_funcionario)
+        if match:
+            rut_funcionario = match.group(1).replace('.', '')
+        # Si no tiene dash pero es largo, aplicar regex de limpieza básica
+        elif len(rut_funcionario) > 10:
+            match_numeric = re.search(r'(\d{7,8}-?[\dkK])$', rut_funcionario)
+            if match_numeric:
+                rut_funcionario = match_numeric.group(1)
+
     observacion = request.form.get('observacion')
     raw_equipos = request.form.getlist('equiposAsignados[]')
     if not raw_equipos:

@@ -174,6 +174,14 @@ def add_Unidad():
             cur = mysql.connection.cursor()
             cur.execute('INSERT INTO unidad (idUnidad, nombreUnidad, contactoUnidad, direccionUnidad, idComuna, idModalidad) VALUES (%s, %s, %s, %s, %s, %s)',
                        (data['codigoUnidad'], data['nombreUnidad'], data['contactoUnidad'], data['direccionUnidad'], data['idComuna'], data['idModalidad']))
+            
+            # Crear/Actualizar registro espejo en funcionario para permitir asignaciones
+            cur.execute("""
+                INSERT INTO funcionario (rutFuncionario, nombreFuncionario, idUnidad, activoFuncionario)
+                VALUES (%s, %s, %s, 1)
+                ON DUPLICATE KEY UPDATE nombreFuncionario = VALUES(nombreFuncionario), idUnidad = VALUES(idUnidad), activoFuncionario = 1
+            """, (data['codigoUnidad'], data['nombreUnidad'], data['codigoUnidad']))
+
             mysql.connection.commit()
             flash('Unidad agregada correctamente', 'success')
             return redirect(url_for('Unidad.UNIDAD'))
@@ -267,6 +275,14 @@ def update_Unidad(id):
             WHERE idUnidad = %s
             """, (data['codigo_Unidad'], data['nombreUnidad'], data['contactoUnidad'],
                   data['direccionUnidad'], data['idComuna'], data['idModalidad'], id))
+
+            # Sincronizar con la tabla de funcionarios (asiento espejo de la unidad)
+            cur.execute("""
+                UPDATE funcionario 
+                SET rutFuncionario = %s, nombreFuncionario = %s, idUnidad = %s
+                WHERE rutFuncionario = %s
+            """, (data['codigo_Unidad'], data['nombreUnidad'], data['codigo_Unidad'], id))
+
             mysql.connection.commit()
             flash('Unidad actualizada correctamente')
             return redirect(url_for('Unidad.UNIDAD'))
