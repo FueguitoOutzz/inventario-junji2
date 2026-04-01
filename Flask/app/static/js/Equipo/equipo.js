@@ -5,6 +5,7 @@ let buscarEquiposController = null;
 document.addEventListener("DOMContentLoaded", async () => {
   try {
     await cargarMarcas(); // Llenar el selector de marcas
+    initEquiposinCodigo(); // Inicializar lógica de equipos sin código
   } catch (error) {
     console.error("Error al cargar marcas:", error);
   }
@@ -544,7 +545,7 @@ $(document).ready(function () {
 
 $(document).ready(function () {
   function validarNumerosYLetras(inputField) {
-    const regex = /^[a-zA-Z0-9]+$/; // Permite solo letras y números
+    const regex = /^[a-zA-Z0-9\-\/]+$/; // Permite letras, números, guiones y barras
     const input = inputField.val().trim();
 
     if (input.length === 0) {
@@ -553,7 +554,7 @@ $(document).ready(function () {
     }
 
     if (!regex.test(input)) {
-      mostrarError(inputField, "Solo se permiten letras y números");
+      mostrarError(inputField, "Solo se permiten letras, números, guiones y barras");
       return false;
     } else {
       limpiarError(inputField);
@@ -1141,34 +1142,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     incidenciaButtonGlobal.addEventListener("click", setIdEquipoInModal); // setIdEquipoInModal ya está definida
   }
 
-  // Listener para el botón de eliminar seleccionados global (Toolbar)
-  // (Reemplaza el $(document).ready para este botón)
-  const deleteSelectedButton = document.getElementById("delete-selected-button");
-  if (deleteSelectedButton) {
-    deleteSelectedButton.addEventListener("click", function () {
-      const selectedRowsCheckboxes = document.querySelectorAll("#myTableBody .row-checkbox:checked");
-      if (!selectedRowsCheckboxes.length) {
-        alert("Por favor, selecciona al menos una fila para eliminar.");
-        return;
-      }
-      const ids = Array.from(selectedRowsCheckboxes).map(function (checkbox) {
-        return checkbox.closest("tr").getAttribute("data-id");
-      });
-
-      // Usar configureGenericModal si está disponible (de main.js)
-      if (typeof configureGenericModal === "function") {
-        configureGenericModal(
-          "Confirmar Eliminación",
-          "¿Estás seguro de que deseas eliminar los equipos seleccionados?",
-          `/delete_equipo/${ids.join(",")}` // Flask necesita poder manejar esta ruta con múltiples IDs
-        );
-      } else { // Fallback por si main.js o la función no carga
-        if (confirm("¿Estás seguro de que deseas eliminar los equipos seleccionados?")) {
-          window.location.href = `/delete_equipo/${ids.join(",")}`;
-        }
-      }
-    });
-  }
+  // El botón de eliminar seleccionados es manejado globalmente por main.js
+  // siempre que tenga la clase .delete-button
 
   // Listener para el checkbox "Todo" en el encabezado de la tabla
   const thTodo = document.querySelector("#tablaEquipo > thead > tr > th.checkbox-column");
@@ -1212,3 +1187,85 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
   }
 });
+
+/**
+ * Inicializa la lógica para equipos sin código de inventario/serie.
+ * Autogenera un código con prefijo "09-" y establece la serie como "S/N".
+ */
+function initEquiposinCodigo() {
+  const configs = [
+    { cbId: 'sin_codigo_add', codId: 'codigo_inventario', serialId: 'numero_serie' },
+    { cbId: 'sin_codigo_edit', codId: 'edit_codigo_inventario', serialId: 'edit_numero_serie' }
+  ];
+
+  configs.forEach(config => {
+    const cb = document.getElementById(config.cbId);
+    const codInput = document.getElementById(config.codId);
+    const serialInput = document.getElementById(config.serialId);
+
+    if (cb && codInput && serialInput) {
+      cb.addEventListener('change', function() {
+        // Buscar el label que precede al input o contenedor
+        const colDiv = codInput.closest('.col-md-6');
+        const labelCod = colDiv ? colDiv.querySelector('label[for="' + config.codId + '"]') : null;
+        
+        const colSerialDiv = serialInput.closest('.col-md-6');
+        const labelSerial = colSerialDiv ? colSerialDiv.querySelector('label[for="' + config.serialId + '"]') : null;
+
+        if (this.checked) {
+          // Remover obligatoriedad visual y técnica
+          codInput.classList.remove('campo-obligatorio');
+          serialInput.classList.remove('campo-obligatorio');
+          
+          if (labelCod) {
+            const star = labelCod.querySelector('span[style*="red"]');
+            if (star) star.style.display = 'none';
+          }
+          if (labelSerial) {
+            const star = labelSerial.querySelector('span[style*="red"]');
+            if (star) star.style.display = 'none';
+          }
+
+          // Autogenerar valores si están vacíos o si el usuario quiere "sobreescribir" con el auto-código
+          if (!codInput.value || codInput.value.trim() === "" || codInput.value === "None") {
+            codInput.value = generateTempID();
+          }
+          if (!serialInput.value || serialInput.value.trim() === "" || serialInput.value === "None") {
+            serialInput.value = "S/N";
+          }
+        } else {
+          // Restaurar obligatoriedad
+          codInput.classList.add('campo-obligatorio');
+          serialInput.classList.add('campo-obligatorio');
+          
+          if (labelCod) {
+            const star = labelCod.querySelector('span[style*="red"]');
+            if (star) star.style.display = 'inline';
+          }
+          if (labelSerial) {
+            const star = labelSerial.querySelector('span[style*="red"]');
+            if (star) star.style.display = 'inline';
+          }
+          
+          // Limpiar si es un valor autogenerado para que el usuario ponga el real
+          if (codInput.value.startsWith('09-')) codInput.value = "";
+          if (serialInput.value === "S/N") serialInput.value = "";
+        }
+      });
+    }
+  });
+}
+
+/**
+ * Genera un ID temporal único iniciado con 09- seguido de fecha compacta.
+ * Formato: 09-YYMMDDHHMM
+ */
+function generateTempID() {
+  const now = new Date();
+  const year = String(now.getFullYear()).slice(-2);
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hours = String(now.getHours()).padStart(2, '0');
+  const minutes = String(now.getMinutes()).padStart(2, '0');
+  return `09-${year}${month}${day}${hours}${minutes}`;
+}

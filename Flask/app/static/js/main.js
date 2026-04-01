@@ -673,23 +673,26 @@ $(document).ready(function () {
 $(document).ready(function () {
   // Definir y exponer configureGenericModal globalmente
   window.configureGenericModal = function (title, message, confirmUrl) {
-    // Configurar el título y mensaje del modal
-    $("#genericModalLabel").text(title);
-    $("#genericModalMessage").text(message);
-
-    // Asignar la acción de redirección al botón de confirmación
-    $("#genericModalConfirmButton").off("click").on("click", function () {
-      if (confirmUrl) {
-        window.location.href = confirmUrl; // Redirigir a la URL
+    Swal.fire({
+      title: title,
+      text: message,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#59ae87',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Confirmar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        if (confirmUrl) {
+          window.location.href = confirmUrl;
+        }
       }
-      $("#genericModal").modal("hide");
     });
-
-    $("#genericModal").modal("show");
   };
 
   // Asignar eventos a los botones de eliminar
-  $(".delete-button").on("click", function () {
+  $(document).on("click", ".delete-button", function () {
     const title = $(this).data("title") || "Confirmar Acción";
     const message = $(this).data("message") || "¿Estás seguro de realizar esta acción?";
     const confirmUrl = $(this).data("url");

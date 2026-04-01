@@ -161,38 +161,69 @@ document.addEventListener("DOMContentLoaded", function () {
             .map(checkbox => checkbox.value);
 
         if (seleccionados.length > 0) {
-            if (confirm(`¿Seguro que deseas eliminar ${seleccionados.length} traslado(s)?`)) {
-                fetch('/traslado/delete_multiple', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ traslados: seleccionados })
-                })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            mostrarAlerta("Traslados eliminados correctamente.", "success");
-
-                            // Eliminar filas de la tabla
-                            seleccionados.forEach(id => {
-                                let row = document.querySelector(`input[value="${id}"]`).closest("tr");
-                                if (row) row.remove();
-                            });
-
-                            // Desmarcar el checkbox de "Seleccionar todo"
-                            document.getElementById("selectAll").checked = false;
-                            botonEliminar.innerHTML = '<i class="bi bi-trash"></i> '; // icono sin mensaje para el botón de eliminar
-                            botonEliminar.disabled = true; //deshabilita el botón de eliminar
-                        } else {
-                            mostrarAlerta("Error al eliminar traslados.", "danger");
-                        }
+            Swal.fire({
+                title: 'Confirmar eliminación',
+                text: `¿Seguro que deseas eliminar ${seleccionados.length} traslado(s)?`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#59ae87',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    fetch('/traslado/delete_multiple', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ traslados: seleccionados })
                     })
-                    .catch(error => {
-                        console.error('Error:', error);
-                        mostrarAlerta("Ocurrió un error inesperado.", "danger");
-                    });
-            }
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                Swal.fire({
+                                    title: '¡Eliminados!',
+                                    text: 'Traslados eliminados correctamente.',
+                                    icon: 'success',
+                                    confirmButtonColor: '#59ae87'
+                                }).then(() => {
+                                    // Eliminar filas de la tabla
+                                    seleccionados.forEach(id => {
+                                        let row = document.querySelector(`input[value="${id}"]`).closest("tr");
+                                        if (row) row.remove();
+                                    });
+
+                                    // Desmarcar el checkbox de "Seleccionar todo"
+                                    document.getElementById("selectAll").checked = false;
+                                    botonEliminar.innerHTML = '<i class="bi bi-trash"></i> ';
+                                    botonEliminar.disabled = true;
+                                });
+                            } else {
+                                Swal.fire({
+                                    title: 'Error',
+                                    text: "Error al eliminar traslados.",
+                                    icon: 'error',
+                                    confirmButtonColor: '#59ae87'
+                                });
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            Swal.fire({
+                                title: 'Error',
+                                text: "Ocurrió un error inesperado.",
+                                icon: 'error',
+                                confirmButtonColor: '#59ae87'
+                            });
+                        });
+                }
+            });
         } else {
-            mostrarAlerta("No has seleccionado ningún traslado.", "warning");
+            Swal.fire({
+                title: 'Aviso',
+                text: "No has seleccionado ningún traslado.",
+                icon: 'info',
+                confirmButtonColor: '#59ae87'
+            });
         }
     });
 });

@@ -64,16 +64,7 @@ $(document).ready(function () {
         $("#editTipoEquipoModal").modal("show");
     });
 
-    // Manejar clic en el botón "Eliminar" para redirigir a la URL de eliminación
-    $(".delete-button").on("click", function () {
-        const url = $(this).data("url");
-        if (url) {
-            // Puedes mostrar un confirm() si quieres doble confirmación
-            if (confirm("¿Estás seguro de que deseas eliminar los tipos seleccionados? Esto afectará las relaciones asociadas.")) {
-                window.location.href = url;
-            }
-        }
-    });
+
 });
 
 // --- Impresión de tipos de equipo ---

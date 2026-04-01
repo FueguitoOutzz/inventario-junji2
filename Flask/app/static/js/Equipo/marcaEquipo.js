@@ -76,25 +76,7 @@ $(document).ready(function () {
         $("#modal-edit-marca").modal("show");
     });
 
-    // Manejar clic en el botón "Eliminar" para abrir el modal de confirmación o redirigir directamente
-    $(".delete-button").on("click", function () {
-        if ($(this).prop("disabled")) return; // Evita la acción si está deshabilitado
 
-        const deleteUrl = $(this).data("url");
-
-        if (!deleteUrl || !deleteUrl.includes("/delete_marca_equipo/")) {
-            return;
-        }
-
-        // Si tienes un modal de confirmación, descomenta y usa esto:
-        // $("#confirm-delete-button").attr("href", deleteUrl);
-        // $("#modal-delete-marca").modal("show");
-
-        // Si NO tienes modal de confirmación, usa confirm() nativo:
-        if (confirm("¿Estás seguro de que deseas eliminar las marcas seleccionadas? Esto eliminará también las relaciones asociadas")) {
-            window.location.href = deleteUrl;
-        }
-    });
 
     var buscador = document.getElementById("buscador");
     if (buscador) {

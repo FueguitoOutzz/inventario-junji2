@@ -228,7 +228,7 @@ def add_equipo():
         current_app.logger.info("[equipo.add] Datos recibidos=%s", datos)
 
         # Convertir cadenas vacías a None para los campos opcionales Error en los siguientes campos: - codigo_inventario: null value not allowed
-        for key in ['mac', 'imei', 'numero', 'codigo_Unidad', 'nombre_orden_compra', 'idModelo_equipo', 'codigoproveedor']:
+        for key in ['mac', 'imei', 'numero', 'codigo_Unidad', 'nombre_orden_compra', 'idModelo_equipo', 'codigoproveedor', 'codigo_inventario', 'numero_serie']:
             if datos[key] == "":
                 datos[key] = None
 
@@ -238,8 +238,8 @@ def add_equipo():
 
         # Definir el esquema de validación
         schema = {
-            'codigo_inventario': {'type': 'string','regex': '^[a-zA-Z0-9]+$'},
-            'numero_serie': {'type': 'string', 'regex': '^[a-zA-Z0-9]+$'},
+            'codigo_inventario': {'type': 'string','regex': '^[a-zA-Z0-9-]+$', 'nullable': True},
+            'numero_serie': {'type': 'string', 'regex': '^[a-zA-Z0-9-/]+$', 'nullable': True},
             'observacion_equipo': {'type': 'string', 'nullable': True},
             'codigoproveedor': {'type': 'string', 'regex': '^[a-zA-Z0-9]+$', 'nullable': True},
             'mac': {'type': 'string', 'regex': r'^([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}$', 'nullable': True},
@@ -400,7 +400,7 @@ def update_equipo(id):
         current_app.logger.info(f"[equipo.update][DEBUG] ID={id} Received form data: {datos}")
 
         # Convertir cadenas vacías a None para campos opcionales
-        for key in ['mac', 'imei', 'numero', 'codigo_Unidad', 'nombre_orden_compra', 'codigoproveedor']:
+        for key in ['mac', 'imei', 'numero', 'codigo_Unidad', 'nombre_orden_compra', 'codigoproveedor', 'codigo_inventario', 'numero_serie']:
             if datos[key] == "":
                 datos[key] = None
 
@@ -410,8 +410,8 @@ def update_equipo(id):
 
         # Definir el esquema de validación con Cerberus
         schema = {
-            'codigo_inventario': {'type': 'string', 'regex': '^[a-zA-Z0-9]+$'},
-            'numero_serie': {'type': 'string', 'regex': '^[a-zA-Z0-9]+$'},
+            'codigo_inventario': {'type': 'string', 'regex': '^[a-zA-Z0-9-]+$', 'nullable': True},
+            'numero_serie': {'type': 'string', 'regex': '^[a-zA-Z0-9-/]+$', 'nullable': True},
             'observacion_equipo': {'type': 'string', 'nullable': True},
             'codigoproveedor': {'type': 'string', 'regex': '^[a-zA-Z0-9]+$', 'nullable': True},
             'mac': {'type': 'string', 'regex': '^([0-9A-Fa-f]{2}[:-]){5}([0-9A-Fa-f]{2})$', 'nullable': True},

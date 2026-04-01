@@ -316,17 +316,43 @@ $(document).on('click', '.delete-button', function (e) {
     e.preventDefault();
     const url = $(this).data('url');
     const message = $(this).data('message') || "¿Estás seguro de eliminar?";
-    if (confirm(message)) {
-        fetch(url, { method: 'POST' })
-            .then(response => {
-                if (response.redirected) {
-                    window.location.href = response.url;
-                } else {
-                    buscarFuncionarios(1);
-                }
-            })
-            .catch(error => alert("Error al eliminar funcionario: " + error));
-    }
+    
+    Swal.fire({
+        title: 'Confirmar eliminación',
+        text: message,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#59ae87',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            fetch(url, { method: 'POST' })
+                .then(response => {
+                    if (response.redirected) {
+                        window.location.href = response.url;
+                    } else {
+                        Swal.fire({
+                            title: '¡Eliminado!',
+                            text: 'El funcionario ha sido eliminado.',
+                            icon: 'success',
+                            confirmButtonColor: '#59ae87'
+                        }).then(() => {
+                            buscarFuncionarios(1);
+                        });
+                    }
+                })
+                .catch(error => {
+                    Swal.fire({
+                        title: 'Error',
+                        text: "Error al eliminar funcionario: " + error,
+                        icon: 'error',
+                        confirmButtonColor: '#59ae87'
+                    });
+                });
+        }
+    });
 });
 
 // --- Impresión de funcionarios ---

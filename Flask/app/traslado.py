@@ -11,6 +11,7 @@ from flask import (
     jsonify,
     current_app,
 )
+from pathlib import Path
 from db import mysql
 from fpdf import FPDF
 from funciones import getPerPage
@@ -22,7 +23,14 @@ from env_vars import paths
 
 traslado = Blueprint("traslado", __name__, template_folder="app/templates")
 
-PDFS_DIR = paths["pdf_path"]
+BASE_DIR = Path(__file__).resolve().parent
+PDF_ROOT = BASE_DIR / "pdf"
+TRASLADO_ROOT = PDF_ROOT
+FIRMAS_TRASLADOS_DIR = PDF_ROOT / "firmas_traslados"
+
+def _ensure_dir(path: Path) -> Path:
+    path.mkdir(parents=True, exist_ok=True)
+    return path
 
 def _get_cursor():
     conn = mysql.connection
@@ -537,11 +545,16 @@ def create_pdf(traslado, equipos, UnidadOrigen, UnidadDestino,idUnidadDestino,id
             cols.ln()
     # crear pdf con la id para diferenciar pdfs
 
-    nombrePdf = "traslado" + "_" + str(traslado["idTraslado"]) + ".pdf"
-    pdf.output("traslado_{}.pdf".format(traslado["idTraslado"]))
-    # mover pdf a la carpeta
-    os.makedirs("pdf", exist_ok=True)
-    shutil.move(nombrePdf, "pdf")
+    # crear pdf con la id para diferenciar pdfs
+    nombrePdf = f"traslado_{traslado['idTraslado']}.pdf"
+    file_path = TRASLADO_ROOT / nombrePdf
+    
+    # Asegurar que la carpeta exista
+    _ensure_dir(TRASLADO_ROOT)
+    
+    # fpdf.output() puede tomar un string de la ruta completa
+    pdf.output(str(file_path))
+    
     return redirect(url_for("traslado.Traslado"))
 
 
@@ -642,17 +655,21 @@ def imprimir_traslado():
 @loguear_requerido
 def mostrar_pdf(id, firmado="0"):
     if "user" not in session:
-        flash("Se necesita ingresar para acceder a esta ruta")
+        flash("Se necesita ingresar para acceder a esa ruta")
         return redirect("/ingresar")
 
-    nombrePdf = f"traslado_{id}.pdf" if firmado == "0" else f"traslado_{id}_firmado.pdf"
-    dir_pdf = os.path.join("pdf", nombrePdf)
+    nombrePDF = f"traslado_{id}.pdf" if firmado == "0" else f"traslado_{id}_firmado.pdf"
+    
+    if firmado == "0":
+        file_path = TRASLADO_ROOT / nombrePDF
+    else:
+        file_path = FIRMAS_TRASLADOS_DIR / nombrePDF
 
-    if not os.path.exists(dir_pdf):
-        flash(f"El archivo PDF {nombrePdf} no se encuentra disponible.")
-        return redirect("/traslado")  # Redirige a la página principal en vez de caer en error 
+    if not file_path.exists():
+        flash(f"El archivo PDF {nombrePDF} no se encuentra disponible.")
+        return redirect("/traslado")
 
-    return send_file(dir_pdf, as_attachment=False)
+    return send_file(str(file_path), as_attachment=False)
 
 @traslado.route("/traslado/buscar/<idTraslado>")
 @loguear_requerido
@@ -735,18 +752,16 @@ def mostrar_pdf_traslado_firmado(id):
     
     try:
         # Definir el nombre del archivo PDF basado en el ID
-        nombrePDF = "traslado_" + str(id) + "_firmado.pdf"
-        file_path = os.path.join("pdf/firmas_traslados", nombrePDF)
+        nombrePDF = f"traslado_{id}_firmado.pdf"
+        file_path = FIRMAS_TRASLADOS_DIR / nombrePDF
 
         # Verificar si el archivo existe antes de enviarlo
-        if not os.path.exists(file_path):
+        if not file_path.exists():
             flash("No se encontró el archivo PDF solicitado.")
             return redirect(url_for("traslado.Traslado"))
 
-            #return redirect(url_for('traslado.listar_pdf', idTraslado=id))  # Redirige a la página de traslados
-
         # Si el archivo existe, enviarlo para su visualización
-        return send_file(file_path, as_attachment=False)
+        return send_file(str(file_path), as_attachment=False)
 
     except FileNotFoundError:
         flash("El archivo PDF no se encuentra en el servidor.")
@@ -766,36 +781,23 @@ def adjuntar_pdf_traslado(idTraslado):
     if "user" not in session:
         flash("You are NOT authorized")
         return redirect("/ingresar")
-    # Definir la carpeta donde se guardará el archivo
-    dir = "pdf/firmas_traslados"
-
-    # Crear la carpeta si no existe
-    os.makedirs(dir, exist_ok=True)
+        
+    # Asegurar que la carpeta de firmas exista
+    _ensure_dir(FIRMAS_TRASLADOS_DIR)
 
     # Nombre del archivo que debe eliminarse si ya existe
-    filenameToDelete = f"traslado_{idTraslado}_firmado.pdf"
-    file_path = os.path.join(dir, filenameToDelete)
+    filename = f"traslado_{idTraslado}_firmado.pdf"
+    file_path = FIRMAS_TRASLADOS_DIR / filename
 
     # Verificar si el archivo ya existe y eliminarlo
-    if os.path.exists(file_path):
-        os.remove(file_path)
+    if file_path.exists():
+        file_path.unlink()
 
     # Obtener el archivo desde la solicitud
     file = request.files["file"]
 
-    # Guardar el archivo con un nombre seguro
-    sfilename = secure_filename(file.filename)
-    temp_file_path = os.path.join(dir, sfilename)
-    file.save(temp_file_path)
-
-    # Renombrar el archivo al formato correcto
-    new_file_path = os.path.join(dir, f"traslado_{idTraslado}_firmado.pdf")
-    
-    # Eliminar el archivo si ya existe antes de renombrar
-    if os.path.exists(new_file_path):
-        os.remove(new_file_path)
-
-    os.rename(temp_file_path, new_file_path)
+    # Guardar el archivo directamente
+    file.save(str(file_path))
     
     # Actualizar la base de datos para reflejar que el traslado está firmado
     # Se asigna un valor de 1 si se ha subido el archivo de firma
@@ -819,11 +821,10 @@ def adjuntar_pdf_traslado(idTraslado):
 @traslado.route("/traslado/firmas_json/<idTraslado>")
 @loguear_requerido
 def obtener_firma_json(idTraslado):
-    dir_firmas = "pdf/firmas_traslados"
     nombre = f"traslado_{idTraslado}_firmado.pdf"
-    ruta = os.path.join(dir_firmas, nombre)
+    ruta = FIRMAS_TRASLADOS_DIR / nombre
     #devuelve un resultado en formato json si tiene o no firma el traslado
-    if os.path.exists(ruta):
+    if ruta.exists():
         return jsonify({"existe":True,"nombre":nombre})
     else:
         return jsonify({"Existe":False})

@@ -51,11 +51,11 @@ asignacion = Blueprint("asignacion", __name__, template_folder="app/templates")
 # Rutas base para PDFs generados y PDFs cargados por usuarios
 BASE_DIR = Path(__file__).resolve().parent
 UPLOAD_ROOT = BASE_DIR / "pdf" / "uploads"
-FIRMAS_ASIGNACIONES_DIR = UPLOAD_ROOT / "firmas_asignaciones"
-FIRMAS_DEVOLUCIONES_DIR = UPLOAD_ROOT / "firmas_devoluciones"
+FIRMAS_ASIGNACIONES_DIR = BASE_DIR / "pdf" / "firmas_asignaciones"
+FIRMAS_DEVOLUCIONES_DIR = BASE_DIR / "pdf" / "firmas_devoluciones"
 GENERATED_ASIGNACIONES_DIR = BASE_DIR / "pdf" / "asignaciones"
 GENERATED_DEVOLUCIONES_DIR = BASE_DIR / "pdf" / "devoluciones"
-ACTAS_FIRMADAS_DIR = UPLOAD_ROOT / "actas_firmadas"
+ACTAS_FIRMADAS_DIR = BASE_DIR / "pdf" / "actas_firmadas"
 LEGACY_FIRMAS_ASIGNACIONES_DIR = BASE_DIR / "pdf" / "firmas_asignaciones"
 
 def _get_cursor():
@@ -1161,14 +1161,16 @@ def crear_pdf_asignacion(funcionario, equipos):
             cols.write(text="___________________________________")
             cols.ln()
             cols.ln()
-    #*(path cambiado y creacion de carpeta asignaciones)
-    ruta_asignaciones = "pdf/asignaciones"
-    # Asegurar que la carpeta "pdf/asignaciones" exista
-    os.makedirs(ruta_asignaciones, exist_ok=True)
-    nombrePdf = "asignacion_" + funcionario["id_asignacion"] + ".pdf"
-    pdf.output(nombrePdf)
-    shutil.move(nombrePdf, os.path.join(ruta_asignaciones, nombrePdf))
-    #******
+    # Asegurar que la carpeta de asignaciones exista
+    _ensure_dir(GENERATED_ASIGNACIONES_DIR)
+    
+    nombrePdf = f"asignacion_{funcionario['id_asignacion']}.pdf"
+    file_path = GENERATED_ASIGNACIONES_DIR / nombrePdf
+    
+    # fpdf.output() puede tomar un string de la ruta completa
+    pdf.output(str(file_path))
+    
+    return nombrePdf
     #try:
     #funcion para enviar un correo a un funcionario (se envia el acta)
         #enviar_correo(nombrePdf, 'correo')
@@ -1255,19 +1257,20 @@ def generar_pdf_asignacion_por_id(id_asignacion):
 @loguear_requerido
 def descargar_pdf_asignacion(id):
     nombrePDF = f"asignacion_{id}.pdf"
-    file_path = os.path.join("pdf/asignaciones", nombrePDF)
+    file_path = GENERATED_ASIGNACIONES_DIR / nombrePDF
 
     # Si el PDF no existe, lo generamos desde BD
-    if not os.path.exists(file_path):
+    if not file_path.exists():
         try:
             generar_pdf_asignacion_por_id(id)
         except Exception as e:
+            current_app.logger.error(f"Error generando PDF para id={id}: {e}")
             flash(f"Error generando PDF: {e}", "danger")
             return redirect(url_for('asignacion.Asignacion'))
 
     # Servir si existe
-    if os.path.exists(file_path):
-        return send_file(file_path, as_attachment=False)
+    if file_path.exists():
+        return send_file(str(file_path), as_attachment=False)
 
     flash("Error: No se encontró el PDF", "danger")
     return redirect(url_for('asignacion.Asignacion'))
@@ -1632,14 +1635,16 @@ def crear_pdf_devolucion(funcionario, equipos, id_devolucion, observacion=""):
             cols.write(text="___________________________________")
             cols.ln()
             cols.ln()
-    creado_por = "documento creado por: " + session['user']
-    #* Definir la ruta donde se almacenarán los PDFs de devoluciones
-    ruta_devoluciones = "pdf/devoluciones"
-    # Asegurar que la carpeta "pdf/devoluciones" exista
-    os.makedirs(ruta_devoluciones, exist_ok=True)
-    nombrePdf = "devolucion_" + id_devolucion + ".pdf"
-    pdf.output(nombrePdf)
-    shutil.move(nombrePdf, os.path.join(ruta_devoluciones, nombrePdf))
+    # Asegurar que la carpeta de devoluciones exista
+    _ensure_dir(GENERATED_DEVOLUCIONES_DIR)
+    
+    nombrePdf = f"devolucion_{id_devolucion}.pdf"
+    file_path = GENERATED_DEVOLUCIONES_DIR / nombrePdf
+    
+    # fpdf.output() puede tomar un string de la ruta completa
+    pdf.output(str(file_path))
+    
+    return nombrePdf
 
 
 def generar_pdf_devolucion_por_id(id_devolucion):
@@ -1724,19 +1729,20 @@ def generar_pdf_devolucion_por_id(id_devolucion):
 @loguear_requerido
 def descargar_pdf_devolucion(id):
     nombrePDF = f"devolucion_{id}.pdf"
-    file_path = os.path.join("pdf/devoluciones", nombrePDF)
+    file_path = GENERATED_DEVOLUCIONES_DIR / nombrePDF
 
     # Si no existe, generar desde BD
-    if not os.path.exists(file_path):
+    if not file_path.exists():
         try:
             generar_pdf_devolucion_por_id(id)
         except Exception as e:
+            current_app.logger.error(f"Error generando PDF de devolución para id={id}: {e}")
             flash(f"Error generando PDF: {e}", "danger")
             return redirect(url_for('asignacion.Asignacion'))
 
     # Servir si existe
-    if os.path.exists(file_path):
-        return send_file(file_path, as_attachment=False)
+    if file_path.exists():
+        return send_file(str(file_path), as_attachment=False)
 
     flash("Error: No se encontró el PDF", "danger")
     return redirect(url_for('asignacion.Asignacion'))
@@ -1971,13 +1977,14 @@ def firmar_asignacion(id):
         flash("You are NOT authorized")
         return redirect("/ingresar")
 
-    # Ruta de la carpeta donde se almacenan las firmas
-    dir_firmas = "pdf/firmas_asignaciones"
     nombreFirmado = None
 
     # Buscar el archivo firmado relacionado con el ID
     try:
-        for filename in os.listdir(dir_firmas):
+        # Asegurar que la carpeta exista
+        _ensure_dir(FIRMAS_ASIGNACIONES_DIR)
+        
+        for filename in os.listdir(FIRMAS_ASIGNACIONES_DIR):
             if filename.startswith(f"asignacion_{id}_") and filename.endswith("_firmado.pdf"):
                 nombreFirmado = filename
                 break
