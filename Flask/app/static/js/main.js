@@ -672,7 +672,8 @@ $(document).ready(function () {
 
 $(document).ready(function () {
   // Definir y exponer configureGenericModal globalmente
-  window.configureGenericModal = function (title, message, confirmUrl) {
+  // Ahora soporta eliminación vía AJAX (POST) por defecto para mayor seguridad
+  window.configureGenericModal = function (title, message, confirmUrl, callback) {
     Swal.fire({
       title: title,
       text: message,
@@ -685,19 +686,61 @@ $(document).ready(function () {
     }).then((result) => {
       if (result.isConfirmed) {
         if (confirmUrl) {
-          window.location.href = confirmUrl;
+          // Intentar eliminación vía POST (más seguro)
+          fetch(confirmUrl, { 
+            method: 'POST',
+            headers: {
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          })
+          .then(response => {
+            // Si el servidor redirige (302) o responde con éxito (200)
+            if (response.ok || response.redirected) {
+              Swal.fire({
+                title: '¡Éxito!',
+                text: 'La operación se realizó correctamente.',
+                icon: 'success',
+                confirmButtonColor: '#59ae87'
+              }).then(() => {
+                if (response.redirected) {
+                  window.location.href = response.url;
+                } else {
+                  window.location.reload();
+                }
+              });
+            } else {
+              // Si falla el POST, intentar GET como fallback (para rutas antiguas)
+              window.location.href = confirmUrl;
+            }
+          })
+          .catch(error => {
+            console.error("Error en eliminación fetch:", error);
+            // Fallback final a redirección directa
+            window.location.href = confirmUrl;
+          });
+        } else if (callback && typeof callback === 'function') {
+          callback();
         }
       }
     });
   };
 
-  // Asignar eventos a los botones de eliminar
-  $(document).on("click", ".delete-button", function () {
-    const title = $(this).data("title") || "Confirmar Acción";
-    const message = $(this).data("message") || "¿Estás seguro de realizar esta acción?";
+  // Handler GLOBAL para todos los botones con clase .delete-button
+  // Se usa delegación de eventos para capturar botones cargados dinámicamente
+  $(document).on("click", ".delete-button", function (e) {
+    // Si el botón tiene un ID específico de "bulk" o "selected", ignorar (se maneja en local)
+    if (this.id === "delete-selected-button" || $(this).closest('.bulk-actions').length > 0) {
+      return;
+    }
+
+    e.preventDefault();
+    const title = $(this).data("title") || "Confirmar eliminación";
+    const message = $(this).data("message") || "¿Estás seguro de que deseas eliminar este elemento?";
     const confirmUrl = $(this).data("url");
 
-    configureGenericModal(title, message, confirmUrl);
+    if (confirmUrl) {
+      configureGenericModal(title, message, confirmUrl);
+    }
   });
 });
 

@@ -98,19 +98,6 @@ $(document).ready(function () {
         nuevoEstadoSeleccionadoPendiente = "";
     });
 
-    let incidenciaIdToDelete = null;
-    let deleteUrl = null;
-    $(document).on("click", ".delete-button", function () {
-        incidenciaIdToDelete = $(this).data("id");
-        deleteUrl = $(this).data("url");
-        console.log("Incidencia seleccionada para eliminar:", incidenciaIdToDelete);
-    });
-    $(document).on("click", "#confirmDeleteButton", function () {
-        if (deleteUrl) {
-            let form = $("<form>", { method: "POST", action: deleteUrl }).appendTo("body");
-            form.submit();
-        }
-    });
 
     // ✅ Función para limpiar datos (parece correcta)
     function limpiarDato(dato) {

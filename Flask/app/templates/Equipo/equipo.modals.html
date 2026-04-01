@@ -36,13 +36,22 @@
                         <div class="text-error-message"></div>
                     </div>
 
+                    <div class="col-md-12 mb-2">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="optional_codes" name="optional_codes">
+                            <label class="form-check-label fw-bold text-primary" for="optional_codes">
+                                <i class="bi bi-magic me-1"></i> Sin código de inventario/serie (Autogenerar 09)
+                            </label>
+                        </div>
+                    </div>
+
                     <div class="col-md-6">
                         <label class="form-label" for="codigo_inventario">Código Inventario <span
-                                style="color:red;">*</span></label>
+                                id="star_inventario" style="color:red;">*</span></label>
                         <input type="text" class="form-control campo-obligatorio validar-numeros-letras"
                             name="codigo_inventario" id="codigo_inventario"
                             placeholder="Ingrese el Código de Inventario">
-                        <div class="text-error-message">error</div>
+                        <div class="text-error-message"></div>
                     </div>
 
 
@@ -98,7 +107,7 @@
 
                     <div class="col-md-6">
                         <label class="form-label" for="numero_serie">Número de Serie <span
-                                style="color:red;">*</span></label>
+                                id="star_serie" style="color:red;">*</span></label>
                         <input type="text" class="form-control campo-obligatorio validar-numeros-letras"
                             name="numero_serie" id="numero_serie" placeholder="Ingrese el Número de Serie">
                         <div class="text-error-message"></div>
@@ -719,4 +728,42 @@
     document.getElementById("canc").addEventListener("click", function () {
         campoProveedor.style.display = 'block';
     });
+
+    // --- Lógica para códigos opcionales (Autogenerar 09) ---
+    const checkboxOptional = document.getElementById('optional_codes');
+    const inputInventario = document.getElementById('codigo_inventario');
+    const inputSerie = document.getElementById('numero_serie');
+    const starInventario = document.getElementById('star_inventario');
+    const starSerie = document.getElementById('star_serie');
+
+    if (checkboxOptional) {
+        checkboxOptional.addEventListener('change', function() {
+            if (this.checked) {
+                // Deshabilitar SOLO código de inventario. El Nº de serie queda editable (opcional).
+                inputInventario.disabled = true;
+                inputSerie.disabled = false; // Mantenemos editable por si existe un Nº de serie
+                
+                inputInventario.classList.remove('campo-obligatorio');
+                inputSerie.classList.remove('campo-obligatorio');
+                inputInventario.value = '';
+                
+                if (starInventario) starInventario.style.display = 'none';
+                if (starSerie) starSerie.style.display = 'none';
+                
+                inputInventario.placeholder = "Se generará: 09-XXXXXX";
+                inputSerie.placeholder = "Opcional (si se deja vacío: S/N)";
+            } else {
+                // Habilitar campos y volver a requerirlos
+                inputInventario.disabled = false;
+                inputSerie.disabled = false;
+                inputInventario.classList.add('campo-obligatorio');
+                inputSerie.classList.add('campo-obligatorio');
+                if (starInventario) starInventario.style.display = 'inline';
+                if (starSerie) starSerie.style.display = 'inline';
+                
+                inputInventario.placeholder = "Ingrese el Código de Inventario";
+                inputSerie.placeholder = "Ingrese el Número de Serie";
+            }
+        });
+    }
 </script>

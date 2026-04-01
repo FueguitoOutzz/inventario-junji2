@@ -8,6 +8,15 @@ from cerberus import Validator
 from MySQLdb import IntegrityError
 from flask import jsonify
 import os
+import random
+import string
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
+UPLOAD_FOLDER = BASE_DIR / "uploads"
+
+# Asegurar que la carpeta de subidas existe
+UPLOAD_FOLDER.mkdir(parents=True, exist_ok=True)
 
 equipo = Blueprint("equipo", __name__, template_folder="app/templates")
 
@@ -214,18 +223,27 @@ def crear_lista_modelo_tipo_marca():
 def add_equipo():
     if request.method == "POST":
         datos = {
-            'codigo_inventario': request.form["codigo_inventario"].strip(),
-            'numero_serie': request.form["numero_serie"].strip(),
-            'observacion_equipo': request.form["observacion_equipo"].strip(),
-            'codigoproveedor': request.form["codigoproveedor"].strip(),
-            'mac': request.form["mac"].strip(),
-            'imei': request.form["imei"].strip(),
-            'numero': request.form["numero"].strip(),
-            'codigo_Unidad': request.form["codigo_Unidad"].strip(),
-            'nombre_orden_compra': request.form["nombre_orden_compra"].strip(),
-            'idModelo_equipo': request.form["modelo_equipo"].strip(),
+            'codigo_inventario': request.form.get("codigo_inventario", "").strip(),
+            'numero_serie': request.form.get("numero_serie", "").strip(),
+            'observacion_equipo': request.form.get("observacion_equipo", "").strip(),
+            'codigoproveedor': request.form.get("codigoproveedor", "").strip(),
+            'mac': request.form.get("mac", "").strip(),
+            'imei': request.form.get("imei", "").strip(),
+            'numero': request.form.get("numero", "").strip(),
+            'codigo_Unidad': request.form.get("codigo_Unidad", "").strip(),
+            'nombre_orden_compra': request.form.get("nombre_orden_compra", "").strip(),
+            'idModelo_equipo': request.form.get("modelo_equipo", "").strip(),
         }
-        current_app.logger.info("[equipo.add] Datos recibidos=%s", datos)
+        optional_codes = request.form.get("optional_codes")
+        if optional_codes == 'on':
+            if not datos['codigo_inventario']:
+                # Generar código con prefijo 09 y 6 números aleatorios
+                random_digits = ''.join(random.choices(string.digits, k=6))
+                datos['codigo_inventario'] = f"09-{random_digits}"
+            if not datos['numero_serie']:
+                datos['numero_serie'] = "S/N"
+
+        current_app.logger.info("[equipo.add] Datos recibidos=%s (optional_codes=%s)", datos, optional_codes)
 
         # Convertir cadenas vacías a None para los campos opcionales Error en los siguientes campos: - codigo_inventario: null value not allowed
         for key in ['mac', 'imei', 'numero', 'codigo_Unidad', 'nombre_orden_compra', 'idModelo_equipo', 'codigoproveedor', 'codigo_inventario', 'numero_serie']:
@@ -282,8 +300,8 @@ def add_equipo():
                         flash("El código de inventario ya está en uso", 'warning')
                         return redirect(url_for("equipo.Equipo"))
 
-            # ✅ Verificar si el número de serie ya existe
-            if datos['numero_serie']:
+            # ✅ Verificar si el número de serie ya existe (Excepto para 'S/N')
+            if datos['numero_serie'] and datos['numero_serie'].upper() != 'S/N':
                 cur.execute("SELECT idEquipo FROM equipo WHERE Num_serieEquipo = %s", (datos['numero_serie'],))
                 if cur.fetchone():
                     current_app.logger.warning("[equipo.add] Número de serie duplicado=%s", datos['numero_serie'])
@@ -435,17 +453,16 @@ def update_equipo(id):
             return redirect(url_for("equipo.Equipo"))
 
 
-        # Verificar si el código de inventario ya existe (excepto para el mismo equipo)
-
-        # Verificar si el número de serie ya existe (excepto para el mismo equipo)
-        cur.execute("""
-            SELECT idEquipo FROM equipo 
-            WHERE Num_serieEquipo = %s AND idEquipo != %s
-        """, (datos['numero_serie'], id))
-        if cur.fetchone():
-            current_app.logger.warning("[equipo.update] Número de serie duplicado=%s", datos['numero_serie'])
-            flash("El número de serie ya está en uso", 'warning')
-            return redirect(url_for("equipo.Equipo"))
+        # Verificar si el número de serie ya existe (excepto para el mismo equipo y excepto para 'S/N')
+        if datos['numero_serie'] and datos['numero_serie'].upper() != 'S/N':
+            cur.execute("""
+                SELECT idEquipo FROM equipo 
+                WHERE Num_serieEquipo = %s AND idEquipo != %s
+            """, (datos['numero_serie'], id))
+            if cur.fetchone():
+                current_app.logger.warning("[equipo.update] Número de serie duplicado=%s", datos['numero_serie'])
+                flash("El número de serie ya está en uso", 'warning')
+                return redirect(url_for("equipo.Equipo"))
 
         # Verificar si el código de inventario ya existe (excepto para el mismo equipo)
         if datos['codigo_inventario']:
@@ -645,6 +662,60 @@ def delete_equipo(id):
         except Exception as close_error:
             print(f"Error al cerrar el cursor: {str(close_error)}")
 
+        return redirect(url_for("equipo.Equipo"))
+
+@equipo.route("/delete_multiple_equipo/<ids>", methods=["POST", "GET"])
+@administrador_requerido
+def delete_multiple_equipo(ids):
+    if "user" not in session:
+        return jsonify({"status": "error", "message": "No estás autorizado."}), 403
+
+    try:
+        cur = mysql.connection.cursor()
+        id_list = ids.split(',')
+        total_eliminados = 0
+        errores = []
+
+        for id_equipo in id_list:
+            # Reutilizar el chequeo de dependencias para cada equipo
+            dependencias_queries = {
+                "asignaciones": "SELECT COUNT(*) AS count FROM asignacion WHERE idAsignacion IN (SELECT idAsignacion FROM equipo_asignacion WHERE idEquipo = %s)",
+                "equipo_asignacion": "SELECT COUNT(*) AS count FROM equipo_asignacion WHERE idEquipo = %s",
+                "traslaciones": "SELECT COUNT(*) AS count FROM traslacion WHERE idEquipo = %s",
+                "incidencias": "SELECT COUNT(*) AS count FROM incidencia WHERE idEquipo = %s"
+            }
+            
+            tiene_dependencias = False
+            for query in dependencias_queries.values():
+                cur.execute(query, (id_equipo,))
+                if cur.fetchone()["count"] > 0:
+                    tiene_dependencias = True
+                    break
+            
+            if tiene_dependencias:
+                errores.append(f"Equipo ID {id_equipo} tiene dependencias y no se eliminó.")
+                continue
+
+            # Si no hay dependencias, eliminar
+            cur.execute("DELETE FROM equipo_asignacion WHERE idEquipo = %s", (id_equipo,))
+            cur.execute("DELETE FROM traslacion WHERE idEquipo = %s", (id_equipo,))
+            cur.execute("DELETE FROM incidencia WHERE idEquipo = %s", (id_equipo,))
+            cur.execute("DELETE FROM equipo WHERE idEquipo = %s", (id_equipo,))
+            total_eliminados += 1
+
+        mysql.connection.commit()
+        
+        if total_eliminados > 0:
+            flash(f"Se eliminaron {total_eliminados} equipo(s) correctamente.", "success")
+        if errores:
+            for error in errores:
+                flash(error, "warning")
+
+    except Exception as e:
+        mysql.connection.rollback()
+        flash(f"Error al realizar eliminación masiva: {str(e)}", "danger")
+    finally:
+        cur.close()
         return redirect(url_for("equipo.Equipo"))
 
 @equipo.route("/mostrar_asociados_traslado/<idTraslado>")
@@ -978,10 +1049,16 @@ def equipo_detalles(idEquipo):
 def importar_excel():
     #Nesesito el excel para ver el formato
     file = request.files["file"]
-    path = ""
+    if not file:
+        flash("No se seleccionó ningún archivo", "danger")
+        return redirect("/equipo")
+
     safename = secure_filename(file.filename)
-    file.save(os.path.join(path, safename))
-    wb = load_workbook(os.path.join(path, safename))
+    file_path = UPLOAD_FOLDER / safename
+    file.save(str(file_path))
+    
+    wb = load_workbook(str(file_path))
+    ws = wb['Equipo']
     ws = wb['Equipo']
     importar_equipo(col_codigo_inventario='A', 
                     col_n_serie='B', 

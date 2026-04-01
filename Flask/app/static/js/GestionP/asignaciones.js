@@ -659,58 +659,6 @@ function rebindCheckboxEvents() {
             abrirModalDetalleAsignacion(idEquipoAsignacion);
         };
     });
-
-    document.querySelectorAll('.delete-button').forEach(btn => {
-        btn.onclick = function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-            const url = btn.getAttribute('data-url');
-            const title = btn.getAttribute('data-title') || 'Confirmar eliminación';
-            const message = btn.getAttribute('data-message') || '¿Estás seguro de que deseas eliminar este elemento?';
-
-            Swal.fire({
-                title: title,
-                text: message,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#59ae87',
-                cancelButtonColor: '#d33',
-                confirmButtonText: 'Sí, eliminar',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    fetch(url, { method: 'POST' })
-                        .then(res => {
-                            if (res.ok) {
-                                Swal.fire({
-                                    title: '¡Eliminado!',
-                                    text: 'EL equipo ha sido eliminado de la asignación.',
-                                    icon: 'success',
-                                    confirmButtonColor: '#59ae87'
-                                }).then(() => {
-                                    location.reload();
-                                });
-                            } else {
-                                Swal.fire({
-                                    title: 'Error',
-                                    text: 'No se pudo eliminar la asignación.',
-                                    icon: 'error',
-                                    confirmButtonColor: '#59ae87'
-                                });
-                            }
-                        })
-                        .catch(() => {
-                            Swal.fire({
-                                title: 'Error',
-                                text: 'Error al eliminar la asignación.',
-                                icon: 'error',
-                                confirmButtonColor: '#59ae87'
-                            });
-                        });
-                }
-            });
-        };
-    });
 }
 
 // Modal genérico para detalles de asignación

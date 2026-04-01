@@ -151,7 +151,7 @@ def imprimir_marca_equipo():
     )
 
 # Funcion eliminar, para mantener la integridad de los datos, se muestra un mensaje al usuario para que confirme si desea eliminar la marca, si lo hace entonces borramos todas las dependencias de la marca
-@marca_equipo.route('/delete_marca_equipo/<ids>', methods=['GET'])
+@marca_equipo.route('/delete_marca_equipo/<ids>', methods=['GET', 'POST'])
 @administrador_requerido
 def delete_marca_equipo(ids):
     try:

@@ -211,7 +211,7 @@ def update_tipo_equipo(id):
 
     return redirect(url_for("tipo_equipo.tipoEquipo"))
 
-@tipo_equipo.route("/delete_tipo_equipo/<id>", methods=["GET"])
+@tipo_equipo.route("/delete_tipo_equipo/<id>", methods=["GET", "POST"])
 @administrador_requerido
 def delete_tipo_equipo(id):
     if "user" not in session:

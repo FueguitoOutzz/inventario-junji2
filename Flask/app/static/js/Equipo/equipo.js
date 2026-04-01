@@ -1142,8 +1142,30 @@ document.addEventListener('DOMContentLoaded', async () => {
     incidenciaButtonGlobal.addEventListener("click", setIdEquipoInModal); // setIdEquipoInModal ya está definida
   }
 
-  // El botón de eliminar seleccionados es manejado globalmente por main.js
-  // siempre que tenga la clase .delete-button
+  // Listener para el botón de eliminar seleccionados (Toolbar)
+  const deleteSelectedButton = document.getElementById("delete-selected-button");
+  if (deleteSelectedButton) {
+    deleteSelectedButton.addEventListener("click", function () {
+      const selectedCheckboxes = document.querySelectorAll("#myTableBody .row-checkbox:checked");
+      const ids = Array.from(selectedCheckboxes).map(cb => cb.closest("tr").dataset.id).join(",");
+
+      if (ids.length > 0) {
+        const title = "Eliminar equipos seleccionados";
+        const message = `¿Estás seguro de que deseas eliminar ${selectedCheckboxes.length} equipo(s)? Esta acción eliminará también sus registros asociados en traslados e incidencias si no tienen dependencias críticas.`;
+        const url = `/delete_multiple_equipo/${ids}`;
+
+        // Usamos la función global configurada en main.js
+        if (window.configureGenericModal) {
+          window.configureGenericModal(title, message, url);
+        } else {
+          // Fallback si por alguna razón no está cargada
+          if (confirm(message)) {
+            window.location.href = url;
+          }
+        }
+      }
+    });
+  }
 
   // Listener para el checkbox "Todo" en el encabezado de la tabla
   const thTodo = document.querySelector("#tablaEquipo > thead > tr > th.checkbox-column");
